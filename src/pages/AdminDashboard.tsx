@@ -282,89 +282,101 @@ const AdminDashboard = () => {
                     </div>
                 </div>
                 <div className="xl:col-span-4 space-y-8">
-                   <div className="bg-white rounded-[3rem] shadow-xl border border-gray-50 p-10 space-y-10">
-                      <div className="space-y-4">
-                         <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Campaign Title</label>
-                         <input type="text" value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold shadow-sm" />
-                      </div>
-                      <div className="grid grid-cols-3 gap-3">
-                         <Button onClick={() => addPlaceholder('rectangle')} variant="outline" className="h-24 flex-col rounded-2xl border-2 border-gray-50 hover:bg-indigo-50 font-black text-[8px] tracking-widest"><Square size={24} /> RECTANGLE</Button>
-                         <Button onClick={() => addPlaceholder('circle')} variant="outline" className="h-24 flex-col rounded-2xl border-2 border-gray-50 hover:bg-green-50 font-black text-[8px] tracking-widest"><CircleIcon size={24} /> CIRCLE</Button>
-                         <Button onClick={() => addPlaceholder('text')} variant="outline" className="h-24 flex-col rounded-2xl border-2 border-gray-50 hover:bg-purple-50 font-black text-[8px] tracking-widest"><TypeIcon size={24} /> TEXT</Button>
-                      </div>
-                      {selectedPlaceholder && (
-                         <div className="space-y-6 pt-10 border-t border-gray-50 animate-in slide-in-from-bottom-2">
-                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Element Settings</h4>
+                    <div className="bg-white rounded-[3rem] shadow-xl border border-gray-50 p-10 space-y-10 overflow-y-auto max-h-[80vh] custom-scrollbar">
+                       <h3 className="text-xl font-black text-gray-900 border-b border-gray-100 pb-4">Frame Settings</h3>
+                       
+                       <div className="space-y-4">
+                          <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Elements</p>
+                          <div className="flex flex-col gap-3">
+                             <Button onClick={() => addPlaceholder('rectangle')} className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-white font-black rounded-xl py-6 flex items-center justify-between px-6 shadow-lg shadow-green-100">Add Placeholder <Plus size={18} /></Button>
+                             <Button onClick={() => addPlaceholder('text')} className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl py-6 flex items-center justify-center gap-3 shadow-lg shadow-blue-100"><TypeIcon size={18} /> Add Text Field</Button>
+                          </div>
+                       </div>
+
+                       {selectedPlaceholder && (
+                         <div className="space-y-8 pt-6 border-t border-gray-100 animate-in slide-in-from-bottom-2">
+                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{selectedPlaceholder.type === 'text' ? 'Text Editing' : 'Shape Settings'}</p>
                             
                             {selectedPlaceholder.type === 'text' && (
                               <>
-                                <div className="space-y-4">
-                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Label (shown to users)</label>
-                                  <input type="text" value={selectedPlaceholder.label} onChange={e => updatePlaceholder(selectedPlaceholder.id, { label: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold" placeholder="Text Label" />
-                                </div>
-
-                                <div className="space-y-4">
-                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Preview Text</label>
-                                  <input type="text" value={selectedPlaceholder.previewText} onChange={e => updatePlaceholder(selectedPlaceholder.id, { previewText: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold" placeholder="Sample Text" />
+                                <div className="space-y-3">
+                                  <label className="text-[11px] font-bold text-gray-700">label (shown to users)</label>
+                                  <input type="text" value={selectedPlaceholder.label} onChange={e => updatePlaceholder(selectedPlaceholder.id, { label: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                                 </div>
                                 
-                                <div className="flex gap-4">
-                                  <div className="flex-1 capitalize text-[10px] font-black text-gray-400">Font 
-                                    <select value={selectedPlaceholder.fontFamily} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontFamily: e.target.value })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold">{initialFonts.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}</select>
+                                <div className="space-y-3">
+                                  <label className="text-[11px] font-bold text-gray-700">Preview Text</label>
+                                  <input type="text" value={selectedPlaceholder.previewText} onChange={e => updatePlaceholder(selectedPlaceholder.id, { previewText: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
+                                </div>
+                                
+                                <div className="grid grid-cols-12 gap-3">
+                                  <div className="col-span-6 space-y-2">
+                                    <label className="text-[11px] font-bold text-gray-700">Font</label>
+                                    <select value={selectedPlaceholder.fontFamily} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontFamily: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium shadow-sm h-11">{initialFonts.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}</select>
                                   </div>
-                                  <div className="w-16 capitalize text-[10px] font-black text-gray-400">Color 
-                                    <input type="color" value={selectedPlaceholder.color} onChange={e => updatePlaceholder(selectedPlaceholder.id, { color: e.target.value })} className="w-full mt-1 h-11 p-1 bg-white border border-gray-100 rounded-xl cursor-pointer shadow-sm" />
+                                  <div className="col-span-3 space-y-2">
+                                    <label className="text-[11px] font-bold text-gray-700 text-center block">Color</label>
+                                    <input type="color" value={selectedPlaceholder.color} onChange={e => updatePlaceholder(selectedPlaceholder.id, { color: e.target.value })} className="w-full h-11 p-1 bg-white border border-gray-200 rounded-xl cursor-pointer shadow-sm" />
                                   </div>
-                                  <div className="w-20 capitalize text-[10px] font-black text-gray-400">Size 
-                                    <input type="number" value={selectedPlaceholder.fontSize} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontSize: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-gray-900" />
+                                  <div className="col-span-3 space-y-2">
+                                    <label className="text-[11px] font-bold text-gray-700 text-center block">Size</label>
+                                    <input type="number" value={selectedPlaceholder.fontSize} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontSize: parseInt(e.target.value) })} className="w-full h-11 bg-white border border-gray-200 rounded-xl px-2 text-sm font-bold text-center shadow-sm" />
                                   </div>
                                 </div>
 
                                 <div className="grid grid-cols-6 gap-2">
-                                  <Button size="sm" variant={selectedPlaceholder.fontWeight === 'bold' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontWeight: selectedPlaceholder.fontWeight === 'bold' ? 'normal' : 'bold' })} className="h-10 font-bold px-0"><span className="text-sm">B</span></Button>
-                                  <Button size="sm" variant={selectedPlaceholder.fontStyle === 'italic' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontStyle: selectedPlaceholder.fontStyle === 'italic' ? 'normal' : 'italic' })} className="h-10 italic px-0"><span className="text-sm">I</span></Button>
-                                  <Button size="sm" variant={selectedPlaceholder.textDecoration === 'underline' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textDecoration: selectedPlaceholder.textDecoration === 'underline' ? 'none' : 'underline' })} className="h-10 underline px-0"><span className="text-sm">U</span></Button>
-                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'left' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'left' })} className="h-10 px-0"><AlignLeft size={16} /></Button>
-                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'center' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'center' })} className="h-10 px-0"><AlignCenter size={16} /></Button>
-                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'right' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'right' })} className="h-10 px-0"><AlignRight size={16} /></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.fontWeight === 'bold' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontWeight: selectedPlaceholder.fontWeight === 'bold' ? 'normal' : 'bold' })} className="h-10 font-bold px-0 shadow-sm">B</Button>
+                                  <Button size="sm" variant={selectedPlaceholder.fontStyle === 'italic' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontStyle: selectedPlaceholder.fontStyle === 'italic' ? 'normal' : 'italic' })} className="h-10 italic px-0 shadow-sm">I</Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textDecoration === 'underline' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textDecoration: selectedPlaceholder.textDecoration === 'underline' ? 'none' : 'underline' })} className="h-10 underline px-0 shadow-sm">U</Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'left' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'left' })} className="h-10 px-0 shadow-sm"><AlignLeft size={16} /></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'center' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'center' })} className="h-10 px-0 shadow-sm"><AlignCenter size={16} /></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'right' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'right' })} className="h-10 px-0 shadow-sm"><AlignRight size={16} /></Button>
                                 </div>
                               </>
                             )}
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="capitalize text-[10px] font-black text-gray-400">Width 
-                                  <input type="number" value={selectedPlaceholder.width} onChange={e => updatePlaceholder(selectedPlaceholder.id, { width: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                <div className="space-y-2">
+                                  <label className="text-[11px] font-bold text-gray-700">Width</label>
+                                  <input type="number" value={Math.round(selectedPlaceholder.width)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { width: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                                 </div>
-                                <div className="capitalize text-[10px] font-black text-gray-400">Height 
-                                  <input type="number" value={selectedPlaceholder.height} onChange={e => updatePlaceholder(selectedPlaceholder.id, { height: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                <div className="space-y-2">
+                                  <label className="text-[11px] font-bold text-gray-700">Height</label>
+                                  <input type="number" value={Math.round(selectedPlaceholder.height)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { height: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="capitalize text-[10px] font-black text-gray-400">X Position 
-                                  <input type="number" value={Math.round(selectedPlaceholder.x)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { x: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                <div className="space-y-2">
+                                  <label className="text-[11px] font-bold text-gray-700">X</label>
+                                  <input type="number" value={Math.round(selectedPlaceholder.x)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { x: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                                 </div>
-                                <div className="capitalize text-[10px] font-black text-gray-400">Y Position 
-                                  <input type="number" value={Math.round(selectedPlaceholder.y)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { y: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                <div className="space-y-2">
+                                  <label className="text-[11px] font-bold text-gray-700">Y</label>
+                                  <input type="number" value={Math.round(selectedPlaceholder.y)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { y: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                                 </div>
                             </div>
 
                             {selectedPlaceholder.type === 'text' && (
-                              <div className="space-y-4">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Line Height (spacing)</label>
-                                <input type="number" step="0.1" value={selectedPlaceholder.lineHeight} onChange={e => updatePlaceholder(selectedPlaceholder.id, { lineHeight: parseFloat(e.target.value) })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                              <div className="space-y-3">
+                                <label className="text-[11px] font-bold text-gray-700">line Height (spacing)</label>
+                                <input type="number" step="0.1" value={selectedPlaceholder.lineHeight} onChange={e => updatePlaceholder(selectedPlaceholder.id, { lineHeight: parseFloat(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium shadow-sm" />
                               </div>
                             )}
 
-                            <Button onClick={() => deletePlaceholder(selectedPlaceholder.id)} className="w-full h-12 bg-red-50 text-red-500 hover:bg-red-100 border-none rounded-2xl font-black flex items-center gap-2"><Trash2 size={16} /> Delete Element</Button>
+                            <Button onClick={() => deletePlaceholder(selectedPlaceholder.id)} className="w-full h-14 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-xl font-black shadow-lg shadow-red-100 flex items-center justify-center gap-2"><Trash2 size={16} /> Delete</Button>
                          </div>
-                      )}
-                      
-                      <div className="pt-6 flex flex-col gap-3">
-                        <Button onClick={() => {setFrameImage(null); setPlaceholders([]);}} variant="outline" className="w-full h-14 rounded-2xl border-2 border-red-50 text-red-500 font-black">Clear Canvas</Button>
-                        <Button onClick={handleSave} className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100">Save Frame</Button>
-                      </div>
-                   </div>
+                       )}
+                       
+                       <div className="pt-6 space-y-4">
+                          <Button variant="outline" className="w-full h-14 rounded-xl border border-gray-200 font-bold flex items-center justify-center gap-2"><Plus size={18} /> Add Font</Button>
+                          <div className="pt-4 border-t border-gray-100 space-y-3">
+                             <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4">Actions</p>
+                             <Button onClick={() => {setFrameImage(null); setPlaceholders([]);}} className="w-full h-14 bg-[#EF4444] hover:bg-[#DC2626] text-white font-black rounded-xl">Clear Canvas</Button>
+                             <Button onClick={handleSave} className="w-full h-14 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-black rounded-xl shadow-lg shadow-indigo-100">Save Frame</Button>
+                           </div>
+                        </div>
+                    </div>
                 </div>
              </div>
           ) : activeTab === "dash" ? (
