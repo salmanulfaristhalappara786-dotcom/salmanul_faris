@@ -25,6 +25,7 @@ const Participate = () => {
   const [finalPreview, setFinalPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [mySubmissions, setMySubmissions] = useState<string[]>([]);
   const fontInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -305,7 +306,20 @@ const Participate = () => {
             {image && isCropping && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="relative w-full aspect-square md:h-[600px] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/10 group">
-                  <Cropper image={image} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} classes={{ containerClassName: "cursor-move" }} />
+                  <Cropper 
+                    image={image} 
+                    crop={crop} 
+                    zoom={zoom} 
+                    aspect={placeholders.find((p: any) => p.type === 'rectangle' || p.type === 'circle') ? (placeholders.find((p: any) => p.type === 'rectangle' || p.type === 'circle').width / placeholders.find((p: any) => p.type === 'rectangle' || p.type === 'circle').height) : 1} 
+                    onCropChange={setCrop} 
+                    onCropComplete={onCropComplete} 
+                    onZoomChange={setZoom} 
+                    classes={{ containerClassName: "cursor-move" }} 
+                  />
+                  {/* LIVE FRAME OVERLAY */}
+                  <div className="absolute inset-0 pointer-events-none z-20 opacity-80">
+                      <img src={campaign.frame_url} alt="Overlay" className="w-full h-full object-contain" />
+                  </div>
                 </div>
                 <div className="flex items-center gap-6 px-4">
                   <ZoomOut className="w-5 h-5 text-gray-400" />
@@ -355,15 +369,25 @@ const Participate = () => {
                 <div className="flex flex-col gap-5 max-w-md mx-auto">
                   <Button size="lg" className="h-20 text-xl font-black bg-green-600 hover:bg-green-700 rounded-[1.5rem] shadow-2xl shadow-green-100 gap-3 transition-all active:scale-[0.98]" onClick={downloadPoster}><Download className="w-6 h-6" /> Download Poster</Button>
                   {submissionId && (
-                    <Button size="lg" onClick={() => {
-                        const shareUrl = `${window.location.origin}/share/${submissionId}`;
-                        if (navigator.share) navigator.share({ title: campaign.title, text: `My Focal Knot poster!`, url: shareUrl });
-                        else { navigator.clipboard.writeText(shareUrl); toast.success("Link copied!"); }
-                      }}
-                      className="h-20 text-xl font-black bg-indigo-600 hover:bg-indigo-700 rounded-[1.5rem] shadow-2xl shadow-indigo-100 gap-3 transition-all active:scale-[0.98]"
-                    >
-                      <Share2 className="w-6 h-6" /> Share to Gallery
-                    </Button>
+                    <div className="flex flex-col gap-3">
+                      <Button size="lg" onClick={() => {
+                          const shareUrl = `${window.location.origin}/share/${submissionId}`;
+                          if (navigator.share) navigator.share({ title: campaign.title, text: `My Focal Knot poster!`, url: shareUrl });
+                          else { navigator.clipboard.writeText(shareUrl); toast.success("Link copied!"); }
+                        }}
+                        className="h-20 text-xl font-black bg-indigo-600 hover:bg-indigo-700 rounded-[1.5rem] shadow-2xl shadow-indigo-100 gap-3 transition-all active:scale-[0.98]"
+                      >
+                        <Share2 className="w-6 h-6" /> Share to Gallery
+                      </Button>
+                      <Button variant="outline" size="lg" className="h-14 rounded-[1.25rem] text-red-500 border-red-100 hover:bg-red-50 font-bold" onClick={async () => {
+                          if(confirm("Are you sure you want to delete your submission?")) {
+                            await fetch(`/api/submissions?id=${submissionId}`, { method: 'DELETE' });
+                            setSubmissionId(null);
+                            setFinalPreview(null);
+                            toast.success("Submission deleted!");
+                          }
+                      }}>Delete My Submission</Button>
+                    </div>
                   )}
                   <Button variant="outline" size="lg" className="h-16 rounded-[1.25rem] gap-2 font-bold text-gray-500 border-2 border-gray-100" onClick={() => { setFinalPreview(null); setImage(null); setIsCropping(false); setSubmissionId(null); }}><RefreshCw className="w-5 h-5" /> Try Another</Button>
                 </div>

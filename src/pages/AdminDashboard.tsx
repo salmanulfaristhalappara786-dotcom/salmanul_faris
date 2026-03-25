@@ -43,6 +43,7 @@ const AdminDashboard = () => {
   const [placeholders, setPlaceholders] = useState<Placeholder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +139,19 @@ const AdminDashboard = () => {
       const dy = e.clientY - dragOffset.y;
       setPlaceholders(placeholders.map(p => p.id === selectedId ? { ...p, x: p.x + dx, y: p.y + dy } : p));
       setDragOffset({ x: e.clientX, y: e.clientY });
+    } else if (isResizing && selectedId) {
+      const dx = e.clientX - dragOffset.x;
+      const dy = e.clientY - dragOffset.y;
+      setPlaceholders(placeholders.map(p => p.id === selectedId ? { ...p, width: Math.max(20, p.width + dx), height: Math.max(20, p.height + dy) } : p));
+      setDragOffset({ x: e.clientX, y: e.clientY });
     }
+  };
+
+  const startResizing = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setSelectedId(id);
+    setIsResizing(true);
+    setDragOffset({ x: e.clientX, y: e.clientY });
   };
 
   const deletePlaceholder = (id: string) => {
@@ -241,7 +254,7 @@ const AdminDashboard = () => {
                 <div className="xl:col-span-8 bg-white rounded-[3.5rem] shadow-2xl border border-gray-50 overflow-hidden relative">
                     <div className="p-10 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center"><span className="text-[10px] font-black tracking-widest text-gray-400">CANVAS VIEW</span><button onClick={() => {setFrameImage(null); setPlaceholders([]);}} className="text-gray-400 hover:text-red-500"><X size={18} /></button></div>
                     <div className="aspect-square flex items-center justify-center p-12 relative">
-                        <div ref={containerRef} className="relative bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100 w-full max-w-[600px] aspect-square" onMouseMove={handleMouseMove} onMouseUp={() => setIsDragging(false)}>
+                        <div ref={containerRef} className="relative bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100 w-full max-w-[600px] aspect-square" onMouseMove={handleMouseMove} onMouseUp={() => {setIsDragging(false); setIsResizing(false);}}>
                             {frameImage ? <img src={frameImage} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" /> : <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group"><ImageIcon size={40} className="text-gray-200 group-hover:text-indigo-600 transition-colors" /><span className="mt-4 text-[10px] font-black text-gray-300">UPLOAD FRAME PNG</span><input type="file" className="hidden" onChange={handleFrameUpload} accept="image/*" /></label>}
                             {placeholders.map(p => (
                                 <div key={p.id} className="absolute group z-20" style={{ left: p.x, top: p.y, width: p.width, height: p.height }}>
@@ -261,7 +274,8 @@ const AdminDashboard = () => {
                                           <span className="text-[8px] font-black text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full">{p.type.toUpperCase()}</span>
                                         )}
                                     </div>
-                                    {selectedId === p.id && <button onClick={() => deletePlaceholder(p.id)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X size={12} /></button>}
+                                    {selectedId === p.id && <button onClick={() => deletePlaceholder(p.id)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform z-30"><X size={12} /></button>}
+                                    {selectedId === p.id && <div onMouseDown={(e) => startResizing(e, p.id)} className="absolute -bottom-1 -right-1 w-4 h-4 bg-indigo-600 rounded-sm cursor-nwse-resize shadow-md z-30" />}
                                 </div>
                             ))}
                         </div>
