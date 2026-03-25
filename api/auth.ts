@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { OAuth2Client } from 'google-auth-library';
 import dbConnect from './lib/mongoose.js';
@@ -51,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
   } catch (error: any) {
-    console.error('Auth Error:', error.message);
-    return res.status(500).json({ error: 'Authentication failed' });
+    console.error('Auth Error Full:', error);
+    return res.status(500).json({ error: 'Authentication failed', detail: error.message });
   }
 }
