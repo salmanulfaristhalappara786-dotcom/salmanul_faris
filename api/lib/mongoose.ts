@@ -28,10 +28,19 @@ async function dbConnect() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log('MongoDB Connected successfully');
       return mongoose;
+    }).catch((err) => {
+      console.error('MongoDB Connection Error:', err);
+      throw err;
     });
   }
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null; // Reset promise so we can retry
+    throw e;
+  }
   return cached.conn;
 }
 
