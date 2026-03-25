@@ -31,11 +31,19 @@ const Participate = () => {
   useEffect(() => {
     const fetchCampaign = async () => {
       try {
-        const res = await fetch(`/api/campaigns?id=${id}`);
+        // Try fetching by slug first since 'id' from useParams is often the slug
+        const res = await fetch(`/api/campaigns?slug=${id}`);
         const data = await res.json();
         
-        if (!data || data.error) throw new Error("Campaign not found");
-        setCampaign(data);
+        if (!data || data.error) {
+            // Fallback to ID if slug failed (just in case)
+            const resId = await fetch(`/api/campaigns?id=${id}`);
+            const dataId = await resId.json();
+            if (!dataId || dataId.error) throw new Error("Campaign not found");
+            setCampaign(dataId);
+        } else {
+            setCampaign(data);
+        }
         document.title = `${data.title} | Participate — Focal Knot`;
       } catch (error) {
         console.error("Error fetching campaign:", error);
@@ -127,7 +135,7 @@ const Participate = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          campaign_id: id,
+          campaign_id: campaign._id,
           image_url: publicUrl,
           user_data: userData,
           frame_title: campaign.title,
