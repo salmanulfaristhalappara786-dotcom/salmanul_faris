@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import dbConnect from './lib/mongoose';
-import { Submission } from './lib/models';
+import dbConnect from './lib/mongoose.js';
+import { Submission } from './lib/models.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
