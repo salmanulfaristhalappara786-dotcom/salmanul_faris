@@ -13,6 +13,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { method } = req;
   const { id, status, slug } = req.query;
+  const requesterId = req.headers['x-requester-id'];
+  const isAdmin = req.headers['x-requester-role'] === 'admin';
 
   switch (method) {
     case 'GET':
@@ -46,18 +48,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ success: false, error: "Campaign creation failed", details: String(error) });
       }
 
+    case 'PUT':
     case 'PATCH':
       try {
-        const campaign = await Campaign.findByIdAndUpdate(id, req.body, { new: true });
-        return res.status(200).json(campaign);
+        const campaign = await Campaign.findById(id);
+        if (!campaign) return res.status(404).json({ success: false, error: "Campaign not found" });
+        
+        if (!isAdmin && campaign.owner_id !== requesterId) {
+            return res.status(403).json({ success: false, error: "Not authorized to update this campaign" });
+        }
+
+        const updated = await Campaign.findByIdAndUpdate(id, req.body, { new: true });
+        return res.status(200).json(updated);
       } catch (error) {
-        console.error("PATCH Error:", error);
+        console.error("UPDATE Error:", error);
         return res.status(400).json({ success: false, error: String(error) });
       }
     
     case 'DELETE':
         try {
-          await Campaign.findByIdAndDelete(id);
+          const campaign = await Campaign.findById(id);
+          if (!campaign) return res.status(404).json({ success: false, error: "Campaign not found" });
+
+          if (!isAdmin && campaign.owner_id !== requesterId) {
+              return res.status(403).json({ success: false, error: "Not authorized to delete this campaign" });
+          }
+
+          await Campaign.findByIdAndRemove(id);
           return res.status(200).json({ success: true });
         } catch (error) {
           console.error("DELETE Error:", error);
@@ -65,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
     default:
-      res.setHeader('Allow', ['GET', 'POST', 'PATCH', 'DELETE']);
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
       return res.status(405).end(`Method ${method} Not Allowed`);
   }
 }

@@ -234,7 +234,13 @@ const UserDashboard = () => {
                     <Button onClick={() => navigate(`/studio?edit=${c._id}`)} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
                     <Button onClick={async () => {
                         if(confirm("Are you sure you want to delete this frame?")) {
-                          const res = await fetch(`/api/campaigns?id=${c._id}`, { method: 'DELETE' });
+                          const res = await fetch(`/api/campaigns?id=${c._id}`, { 
+                            method: 'DELETE',
+                            headers: {
+                              'x-requester-id': user!.id,
+                              'x-requester-role': user!.role || 'user'
+                            }
+                          });
                           if (res.ok) {
                             toast.success("Frame deleted successfully");
                             fetchProfileAndData(user!.id);
