@@ -4,20 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { 
-  User as UserIcon, Mail, Phone, UserCheck, Clock, ShieldCheck, 
+import {
+  User as UserIcon, Mail, Phone, UserCheck, Clock, ShieldCheck,
   LayoutDashboard, Plus, Image as ImageIcon, LogOut,
   CheckCircle, XCircle, Trash2, Edit
 } from "lucide-react";
+import { FrameEditor, Placeholder } from "@/components/FrameEditor";
 
 interface ProfileRequest {
-  _id: string;
-  user_id: string;
+  id: string;
   username: string;
   gmail: string;
   phone: string;
   status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
+}
+
+interface Campaign {
+  _id: string;
+  title: string;
+  slug: string;
+  frame_url: string;
+  status: string;
+  placeholders: Placeholder[];
 }
 
 const UserDashboard = () => {
@@ -25,23 +33,33 @@ const UserDashboard = () => {
   const { user, logout, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [profileRequest, setProfileRequest] = useState<ProfileRequest | null>(null);
-  const [userCampaigns, setUserCampaigns] = useState<any[]>([]);
-  
+  const [userCampaigns, setUserCampaigns] = useState<Campaign[]>([]);
+
   const [formData, setFormData] = useState({
     username: "",
     gmail: "",
     phone: ""
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editCampaignData, setEditCampaignData] = useState<Campaign | null>(null);
 
   const fetchProfileAndData = useCallback(async (userId: string) => {
     try {
       setLoading(true);
-      
+
       const pRes = await fetch(`/api/user-requests?user_id=${userId}`);
       const profile = await pRes.json();
-      
+
       if (profile && !profile.error) {
-          setProfileRequest(profile);
+          // Map _id to id for ProfileRequest interface compatibility
+          const formattedProfile: ProfileRequest = {
+            id: profile._id,
+            username: profile.username,
+            gmail: profile.gmail,
+            phone: profile.phone,
+            status: profile.status,
+          };
+          setProfileRequest(formattedProfile);
           if (profile.status === 'approved') {
             const cRes = await fetch(`/api/campaigns?owner_id=${userId}`);
             const campaigns = await cRes.json();
@@ -72,7 +90,7 @@ const UserDashboard = () => {
 
     try {
       const loadingToast = toast.loading("Submitting membership request...");
-      
+
       const res = await fetch('/api/user-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,10 +111,18 @@ const UserDashboard = () => {
 
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      
+
       toast.dismiss(loadingToast);
       toast.success("Request sent! Waiting for admin approval.");
-      setProfileRequest(data);
+      // Map _id to id for ProfileRequest interface compatibility
+      const formattedProfile: ProfileRequest = {
+        id: data._id,
+        username: data.username,
+        gmail: data.gmail,
+        phone: data.phone,
+        status: data.status,
+      };
+      setProfileRequest(formattedProfile);
     } catch (error: any) {
       toast.error(error.message || "Failed to submit request.");
     }
@@ -196,62 +222,84 @@ const UserDashboard = () => {
         </div>
       </aside>
 
-      <main className="flex-1 p-12 overflow-y-auto">
-        <header className="flex items-center justify-between mb-12">
-          <div>
-            <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
-            <p className="text-gray-400 font-bold mt-1">Manage your active campaigns.</p>
-          </div>
-          <Button onClick={() => navigate("/studio")} className="bg-indigo-600 hover:bg-indigo-700 h-16 px-10 rounded-2xl text-lg font-black shadow-2xl flex items-center gap-3">
-            <Plus size={22} /> Create New Card
-          </Button>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50">
-            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6">
-              <ImageIcon size={26} />
-            </div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Cards</p>
-            <h4 className="text-4xl font-black text-gray-900">{userCampaigns.length}</h4>
-          </div>
-        </div>
-
-        <h3 className="text-xl font-black text-gray-900 mb-8 px-2 flex items-center gap-3"><div className="w-2 h-8 bg-indigo-600 rounded-full"></div>Your Published Frames</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {userCampaigns.map(c => (
-              <div key={c._id} className="bg-white p-8 rounded-[3rem] border border-gray-50 shadow-xl flex items-center gap-8 group">
-                <div className="w-32 h-32 bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 shrink-0">
-                   <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-2xl font-black text-gray-900 mb-2 truncate">{c.title}</h4>
-                  <span className={`px-4 py-1.5 rounded-full text-[9px] font-black ${c.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                    {c.status.toUpperCase()}
-                  </span>
-                  <div className="flex gap-2 mt-6">
-                    <Button onClick={() => navigate(`/participate/${c.slug}`)} className="bg-indigo-600 h-10 px-6 rounded-xl text-xs font-black">View Live</Button>
-                    <Button onClick={() => navigate(`/studio?edit=${c._id}`)} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
-                    <Button onClick={async () => {
-                        if(confirm("Are you sure you want to delete this frame?")) {
-                          const res = await fetch(`/api/campaigns?id=${c._id}`, { 
-                            method: 'DELETE',
-                            headers: {
-                              'x-requester-id': user!.id,
-                              'x-requester-role': user!.role || 'user'
-                            }
-                          });
-                          if (res.ok) {
-                            toast.success("Frame deleted successfully");
-                            fetchProfileAndData(user!.id);
-                          }
-                        }
-                    }} variant="outline" className="h-10 px-4 rounded-xl text-red-500 border-red-50 font-bold flex items-center gap-2 hover:bg-red-50"><Trash2 size={14} /> Delete</Button>
-                  </div>
-                </div>
+      <main className="flex-1 max-w-7xl mx-auto w-full p-8 lg:p-12 overflow-y-auto">
+        {isEditing ? (
+            <FrameEditor
+                editId={editCampaignData?._id}
+                initialData={editCampaignData ? {
+                    title: editCampaignData.title,
+                    frame_url: editCampaignData.frame_url,
+                    placeholders: editCampaignData.placeholders
+                } : null}
+                onSaveSuccess={() => {
+                    setIsEditing(false);
+                    setEditCampaignData(null);
+                    fetchProfileAndData(user!.id);
+                }}
+                onCancel={() => {
+                    setIsEditing(false);
+                    setEditCampaignData(null);
+                }}
+            />
+        ) : (
+          <>
+            <header className="flex items-center justify-between mb-12">
+              <div>
+                <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
+                <p className="text-gray-400 font-bold mt-1">Manage your active campaigns.</p>
               </div>
-            ))}
-        </div>
+              <Button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-16 px-10 rounded-2xl text-lg font-black shadow-2xl flex items-center gap-3">
+                <Plus size={22} /> Create New Card
+              </Button>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50">
+                <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6">
+                  <ImageIcon size={26} />
+                </div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Cards</p>
+                <h4 className="text-4xl font-black text-gray-900">{userCampaigns.length}</h4>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-black text-gray-900 mb-8 px-2 flex items-center gap-3"><div className="w-2 h-8 bg-indigo-600 rounded-full"></div>Your Published Frames</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {userCampaigns.map(c => (
+                  <div key={c._id} className="bg-white p-8 rounded-[3rem] border border-gray-50 shadow-xl flex items-center gap-8 group">
+                    <div className="w-32 h-32 bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 shrink-0">
+                       <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-2xl font-black text-gray-900 mb-2 truncate">{c.title}</h4>
+                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black ${c.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {c.status.toUpperCase()}
+                      </span>
+                      <div className="flex gap-2 mt-6">
+                        <Button onClick={() => navigate(`/participate/${c.slug}`)} className="bg-indigo-600 h-10 px-6 rounded-xl text-xs font-black">View Live</Button>
+                        <Button onClick={() => { setEditCampaignData(c); setIsEditing(true); }} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
+                        <Button onClick={async () => {
+                            if(confirm("Are you sure you want to delete this frame?")) {
+                              const res = await fetch(`/api/campaigns?id=${c._id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                  'x-requester-id': user!.id,
+                                  'x-requester-role': user!.role || 'user'
+                                }
+                              });
+                              if (res.ok) {
+                                toast.success("Frame deleted successfully");
+                                fetchProfileAndData(user!.id);
+                              }
+                            }
+                        }} variant="outline" className="h-10 px-4 rounded-xl text-red-500 border-red-50 font-bold flex items-center gap-2 hover:bg-red-50"><Trash2 size={14} /> Delete</Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

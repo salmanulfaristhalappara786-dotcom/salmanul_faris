@@ -58,7 +58,6 @@ const App = () => {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/studio" element={<AdminDashboard />} />
                 <Route path="/participate/:id" element={<Participate />} />
                 <Route path="/share/:id" element={<Share />} />
                 <Route path="/dashboard" element={<UserDashboard />} />
