@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import dbConnect from './lib/mongoose';
-import { Campaign } from './lib/models';
+import dbConnect from './lib/mongoose.js';
+import { Campaign } from './lib/models.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   await dbConnect();
