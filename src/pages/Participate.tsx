@@ -163,6 +163,20 @@ const Participate = () => {
           ctx.beginPath();
           ctx.arc(p.x + p.width/2, p.y + p.height/2, p.width/2, 0, Math.PI * 2);
           ctx.clip();
+        } else if (p.type === 'rectangle' && p.borderRadius) {
+          const r = p.borderRadius;
+          ctx.beginPath();
+          ctx.moveTo(p.x + r, p.y);
+          ctx.lineTo(p.x + p.width - r, p.y);
+          ctx.quadraticCurveTo(p.x + p.width, p.y, p.x + p.width, p.y + r);
+          ctx.lineTo(p.x + p.width, p.y + p.height - r);
+          ctx.quadraticCurveTo(p.x + p.width, p.y + p.height, p.x + p.width - r, p.y + p.height);
+          ctx.lineTo(p.x + r, p.y + p.height);
+          ctx.quadraticCurveTo(p.x, p.y + p.height, p.x, p.y + p.height - r);
+          ctx.lineTo(p.x, p.y + r);
+          ctx.quadraticCurveTo(p.x, p.y, p.x + r, p.y);
+          ctx.closePath();
+          ctx.clip();
         }
         const data = placeholderData[p.id];
         const userImg = new Image();

@@ -26,6 +26,7 @@ export interface Placeholder {
   fontStyle?: string;
   textDecoration?: string;
   textAlign?: 'left' | 'center' | 'right';
+  borderRadius?: number;
 }
 
 const initialFonts = [
@@ -92,7 +93,8 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
       textAlign: 'center',
       fontWeight: 'normal',
       fontStyle: 'normal',
-      textDecoration: 'none'
+      textDecoration: 'none',
+      borderRadius: type === 'rectangle' ? 20 : 0
     };
     setPlaceholders([...placeholders, newPlaceholder]);
     setSelectedId(newPlaceholder.id);
@@ -176,7 +178,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                 {frameImage ? <img src={frameImage} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" /> : <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group"><ImageIcon size={40} className="text-gray-200 group-hover:text-indigo-600 transition-colors" /><span className="mt-4 text-[10px] font-black text-gray-300">UPLOAD FRAME PNG</span><input type="file" className="hidden" onChange={handleFrameUpload} accept="image/*" /></label>}
                 {placeholders.map(p => (
                     <div key={p.id} className="absolute group z-20" style={{ left: p.x, top: p.y, width: p.width, height: p.height }}>
-                        <div onMouseDown={(e) => { setSelectedId(p.id); setIsDragging(true); setDragOffset({ x: e.clientX, y: e.clientY }); }} className={`w-full h-full flex items-center justify-center transition-all ${selectedId === p.id ? 'ring-4 ring-indigo-500/30 border-2 border-indigo-600 shadow-xl' : 'border border-dashed border-gray-300'}`} style={{ borderRadius: p.type === 'circle' ? '50%' : '12px', backgroundColor: p.type === 'text' ? 'transparent' : 'rgba(99, 102, 241, 0.15)' }}>
+                        <div onMouseDown={(e) => { setSelectedId(p.id); setIsDragging(true); setDragOffset({ x: e.clientX, y: e.clientY }); }} className={`w-full h-full flex items-center justify-center transition-all ${selectedId === p.id ? 'ring-4 ring-indigo-500/30 border-2 border-indigo-600 shadow-xl' : 'border border-dashed border-gray-300'}`} style={{ borderRadius: p.type === 'circle' ? '50%' : `${p.borderRadius || 0}px`, backgroundColor: p.type === 'text' ? 'transparent' : 'rgba(99, 102, 241, 0.15)' }}>
                             {p.type === 'text' ? (
                                 <span style={{ fontSize: p.fontSize, fontFamily: p.fontFamily, color: p.color, textAlign: p.textAlign, fontWeight: p.fontWeight, fontStyle: p.fontStyle, textDecoration: p.textDecoration, lineHeight: p.lineHeight }}>{p.previewText || p.label}</span>
                             ) : (
@@ -223,9 +225,20 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="space-y-1"><label>Width</label><input type="number" value={Math.round(selectedPlaceholder.width)} onChange={e => setPlaceholders(placeholders.map(ph => ph.id === selectedId ? {...ph, width: parseInt(e.target.value)} : ph))} className="w-full border border-gray-100 rounded-xl px-3 py-2" /></div>
-                            <div className="space-y-1"><label>Height</label><input type="number" value={Math.round(selectedPlaceholder.height)} onChange={e => setPlaceholders(placeholders.map(ph => ph.id === selectedId ? {...ph, height: parseInt(e.target.value)} : ph))} className="w-full border border-gray-100 rounded-xl px-3 py-2" /></div>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div className="space-y-1"><label>Width</label><input type="number" value={Math.round(selectedPlaceholder.width)} onChange={e => setPlaceholders(placeholders.map(ph => ph.id === selectedId ? {...ph, width: parseInt(e.target.value)} : ph))} className="w-full border border-gray-100 rounded-xl px-3 py-2" /></div>
+                                <div className="space-y-1"><label>Height</label><input type="number" value={Math.round(selectedPlaceholder.height)} onChange={e => setPlaceholders(placeholders.map(ph => ph.id === selectedId ? {...ph, height: parseInt(e.target.value)} : ph))} className="w-full border border-gray-100 rounded-xl px-3 py-2" /></div>
+                            </div>
+                            {selectedPlaceholder.type === 'rectangle' && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Corner Roundness</label>
+                                    <div className="flex items-center gap-4">
+                                        <input type="range" min={0} max={100} value={selectedPlaceholder.borderRadius || 0} onChange={e => setPlaceholders(placeholders.map(ph => ph.id === selectedId ? {...ph, borderRadius: parseInt(e.target.value)} : ph))} className="flex-1" />
+                                        <span className="text-xs font-bold w-8">{selectedPlaceholder.borderRadius || 0}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     <Button onClick={() => { setPlaceholders(placeholders.filter(ph => ph.id !== selectedId)); setSelectedId(null); }} className="w-full bg-red-50 text-red-500 hover:bg-red-100 border-none font-black text-[10px] rounded-xl"><Trash2 size={14} /> Remove Element</Button>
