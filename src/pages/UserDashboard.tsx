@@ -85,6 +85,12 @@ const UserDashboard = () => {
         })
       });
 
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Server Error: ${res.status}. Check Vercel logs.`);
+      }
+
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       

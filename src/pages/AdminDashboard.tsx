@@ -181,14 +181,16 @@ const AdminDashboard = () => {
             owner_id: user?.id
         })
       });
-
-      if (!saveRes.ok) throw new Error("Database save failed.");
+      if (!saveRes.ok) {
+        const errorMsg = await saveRes.text();
+        console.error("API Error:", errorMsg);
+        throw new Error(`Server responded with ${saveRes.status}`);
+      }
       
       toast.dismiss(loadingToastId);
       toast.success("Campaign Published!");
       setIsModalOpen(false);
       setActiveTab("dash");
-      fetchData();
     } catch (error: any) {
       toast.dismiss(loadingToastId);
       toast.error(error.message);
