@@ -2,9 +2,9 @@ import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, Square, Circle as CircleIcon, Type, Save, Trash2,
-  Image as ImageIcon, LayoutDashboard, LogOut, Palette, Type as TypeIcon,
-  Settings2, X, Edit3, Menu, Check, CheckCircle, Clock, ShieldCheck, Mail, Phone, UserCheck
+  LayoutDashboard, Plus, Image as ImageIcon, LogOut, Palette, Type as TypeIcon,
+  Settings2, X, Edit3, Menu, Check, CheckCircle, Clock, ShieldCheck, Mail, Phone, UserCheck,
+  AlignLeft, AlignCenter, AlignRight, Save, Square, Circle as CircleIcon, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,11 +19,14 @@ interface Placeholder {
   width: number;
   height: number;
   label?: string;
+  previewText?: string;
   fontSize?: number;
   fontFamily?: string;
   color?: string;
   lineHeight?: number;
-  fontUrl?: string;
+  fontWeight?: string;
+  fontStyle?: string;
+  textDecoration?: string;
   textAlign?: 'left' | 'center' | 'right';
 }
 
@@ -109,11 +112,15 @@ const AdminDashboard = () => {
       width: type === 'text' ? 180 : 150,
       height: type === 'text' ? 50 : 150,
       label: type === 'text' ? "നിങ്ങളുടെ പേര് ഇവിടെ ടൈപ്പ് ചെയ്യുക" : undefined,
+      previewText: type === 'text' ? "Sample Text" : undefined,
       fontSize: type === 'text' ? 22 : undefined,
       fontFamily: type === 'text' ? "'Manjari', sans-serif" : 'Arial',
       color: '#000000',
-      lineHeight: 1.2,
-      textAlign: 'center'
+      lineHeight: 1.4,
+      textAlign: 'center',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textDecoration: 'none'
     };
     setPlaceholders([...placeholders, newPlaceholder]);
     setSelectedId(newPlaceholder.id);
@@ -239,7 +246,20 @@ const AdminDashboard = () => {
                             {placeholders.map(p => (
                                 <div key={p.id} className="absolute group z-20" style={{ left: p.x, top: p.y, width: p.width, height: p.height }}>
                                     <div onMouseDown={(e) => handleMouseDown(e, p.id)} className={`w-full h-full flex items-center justify-center transition-all ${selectedId === p.id ? 'ring-4 ring-indigo-500/30 border-2 border-indigo-600 shadow-xl' : 'border border-dashed border-gray-300'}`} style={{ borderRadius: p.type === 'circle' ? '50%' : '12px', backgroundColor: p.type === 'text' ? 'transparent' : 'rgba(99, 102, 241, 0.15)' }}>
-                                        {p.type === 'text' ? <span style={{ fontSize: p.fontSize, fontFamily: p.fontFamily, color: p.color, textAlign: p.textAlign }}>{p.label}</span> : <span className="text-[8px] font-black text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full">{p.type.toUpperCase()}</span>}
+                                        {p.type === 'text' ? (
+                                          <span style={{ 
+                                            fontSize: p.fontSize, 
+                                            fontFamily: p.fontFamily, 
+                                            color: p.color, 
+                                            textAlign: p.textAlign,
+                                            fontWeight: p.fontWeight,
+                                            fontStyle: p.fontStyle,
+                                            textDecoration: p.textDecoration,
+                                            lineHeight: p.lineHeight
+                                          }}>{p.previewText || p.label}</span>
+                                        ) : (
+                                          <span className="text-[8px] font-black text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full">{p.type.toUpperCase()}</span>
+                                        )}
                                     </div>
                                     {selectedId === p.id && <button onClick={() => deletePlaceholder(p.id)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><X size={12} /></button>}
                                 </div>
@@ -258,17 +278,78 @@ const AdminDashboard = () => {
                          <Button onClick={() => addPlaceholder('circle')} variant="outline" className="h-24 flex-col rounded-2xl border-2 border-gray-50 hover:bg-green-50 font-black text-[8px] tracking-widest"><CircleIcon size={24} /> CIRCLE</Button>
                          <Button onClick={() => addPlaceholder('text')} variant="outline" className="h-24 flex-col rounded-2xl border-2 border-gray-50 hover:bg-purple-50 font-black text-[8px] tracking-widest"><TypeIcon size={24} /> TEXT</Button>
                       </div>
-                      {selectedPlaceholder?.type === 'text' && (
+                      {selectedPlaceholder && (
                          <div className="space-y-6 pt-10 border-t border-gray-50 animate-in slide-in-from-bottom-2">
-                            <input type="text" value={selectedPlaceholder.label} onChange={e => updatePlaceholder(selectedPlaceholder.id, { label: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-inner" />
-                            <select value={selectedPlaceholder.fontFamily} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontFamily: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold">{initialFonts.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}</select>
-                            <div className="flex gap-4">
-                                <div className="flex-1 capitalize text-[10px] font-black text-gray-400">Size <input type="number" value={selectedPlaceholder.fontSize} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontSize: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-gray-900" /></div>
-                                <div className="w-16 capitalize text-[10px] font-black text-gray-400">Color <input type="color" value={selectedPlaceholder.color} onChange={e => updatePlaceholder(selectedPlaceholder.id, { color: e.target.value })} className="w-full mt-1 h-11 p-1 bg-white border border-gray-100 rounded-xl cursor-pointer shadow-sm" /></div>
+                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Element Settings</h4>
+                            
+                            {selectedPlaceholder.type === 'text' && (
+                              <>
+                                <div className="space-y-4">
+                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Label (shown to users)</label>
+                                  <input type="text" value={selectedPlaceholder.label} onChange={e => updatePlaceholder(selectedPlaceholder.id, { label: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold" placeholder="Text Label" />
+                                </div>
+
+                                <div className="space-y-4">
+                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Preview Text</label>
+                                  <input type="text" value={selectedPlaceholder.previewText} onChange={e => updatePlaceholder(selectedPlaceholder.id, { previewText: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold" placeholder="Sample Text" />
+                                </div>
+                                
+                                <div className="flex gap-4">
+                                  <div className="flex-1 capitalize text-[10px] font-black text-gray-400">Font 
+                                    <select value={selectedPlaceholder.fontFamily} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontFamily: e.target.value })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold">{initialFonts.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}</select>
+                                  </div>
+                                  <div className="w-16 capitalize text-[10px] font-black text-gray-400">Color 
+                                    <input type="color" value={selectedPlaceholder.color} onChange={e => updatePlaceholder(selectedPlaceholder.id, { color: e.target.value })} className="w-full mt-1 h-11 p-1 bg-white border border-gray-100 rounded-xl cursor-pointer shadow-sm" />
+                                  </div>
+                                  <div className="w-20 capitalize text-[10px] font-black text-gray-400">Size 
+                                    <input type="number" value={selectedPlaceholder.fontSize} onChange={e => updatePlaceholder(selectedPlaceholder.id, { fontSize: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-gray-900" />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-6 gap-2">
+                                  <Button size="sm" variant={selectedPlaceholder.fontWeight === 'bold' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontWeight: selectedPlaceholder.fontWeight === 'bold' ? 'normal' : 'bold' })} className="h-10 font-bold px-0"><span className="text-sm">B</span></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.fontStyle === 'italic' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { fontStyle: selectedPlaceholder.fontStyle === 'italic' ? 'normal' : 'italic' })} className="h-10 italic px-0"><span className="text-sm">I</span></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textDecoration === 'underline' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textDecoration: selectedPlaceholder.textDecoration === 'underline' ? 'none' : 'underline' })} className="h-10 underline px-0"><span className="text-sm">U</span></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'left' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'left' })} className="h-10 px-0"><AlignLeft size={16} /></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'center' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'center' })} className="h-10 px-0"><AlignCenter size={16} /></Button>
+                                  <Button size="sm" variant={selectedPlaceholder.textAlign === 'right' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedPlaceholder.id, { textAlign: 'right' })} className="h-10 px-0"><AlignRight size={16} /></Button>
+                                </div>
+                              </>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="capitalize text-[10px] font-black text-gray-400">Width 
+                                  <input type="number" value={selectedPlaceholder.width} onChange={e => updatePlaceholder(selectedPlaceholder.id, { width: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                </div>
+                                <div className="capitalize text-[10px] font-black text-gray-400">Height 
+                                  <input type="number" value={selectedPlaceholder.height} onChange={e => updatePlaceholder(selectedPlaceholder.id, { height: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="capitalize text-[10px] font-black text-gray-400">X Position 
+                                  <input type="number" value={Math.round(selectedPlaceholder.x)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { x: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                </div>
+                                <div className="capitalize text-[10px] font-black text-gray-400">Y Position 
+                                  <input type="number" value={Math.round(selectedPlaceholder.y)} onChange={e => updatePlaceholder(selectedPlaceholder.id, { y: parseInt(e.target.value) })} className="w-full mt-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                                </div>
+                            </div>
+
+                            {selectedPlaceholder.type === 'text' && (
+                              <div className="space-y-4">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Line Height (spacing)</label>
+                                <input type="number" step="0.1" value={selectedPlaceholder.lineHeight} onChange={e => updatePlaceholder(selectedPlaceholder.id, { lineHeight: parseFloat(e.target.value) })} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold shadow-sm" />
+                              </div>
+                            )}
+
+                            <Button onClick={() => deletePlaceholder(selectedPlaceholder.id)} className="w-full h-12 bg-red-50 text-red-500 hover:bg-red-100 border-none rounded-2xl font-black flex items-center gap-2"><Trash2 size={16} /> Delete Element</Button>
                          </div>
                       )}
-                      <Button onClick={handleSave} className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100">CREATE CAMPAIGN PAGE</Button>
+                      
+                      <div className="pt-6 flex flex-col gap-3">
+                        <Button onClick={() => {setFrameImage(null); setPlaceholders([]);}} variant="outline" className="w-full h-14 rounded-2xl border-2 border-red-50 text-red-500 font-black">Clear Canvas</Button>
+                        <Button onClick={handleSave} className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100">Save Frame</Button>
+                      </div>
                    </div>
                 </div>
              </div>

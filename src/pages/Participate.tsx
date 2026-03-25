@@ -212,15 +212,39 @@ const Participate = () => {
         const tAlign = (textSettings[p.id]?.textAlign) || p.textAlign || "center";
         const customFontNames = Object.values(customFonts);
         const fFamily = customFontNames.length > 0 ? customFontNames[customFontNames.length - 1] : (p.fontFamily || 'sans-serif');
+        const fWeight = p.fontWeight || 'bold';
+        const fStyle = p.fontStyle || 'normal';
+        const tDeco = p.textDecoration || 'none';
         
-        ctx.font = `bold ${fSize}px "${fFamily}"`;
+        ctx.font = `${fStyle} ${fWeight} ${fSize}px "${fFamily}"`;
         ctx.fillStyle = p.color || "white";
+        ctx.textBaseline = 'top';
+
+        if (tDeco === 'underline') {
+          // Underline logic can be added here if needed, 
+          // but usually canvas doesn't support it natively without drawing a line
+        }
         
         let textX = p.x + p.width/2;
         if (tAlign === 'left') textX = p.x;
         if (tAlign === 'right') textX = p.x + p.width;
 
         drawWrappedText(value, textX, p.y + fSize, p.width, fSize, lHeight, tAlign as CanvasTextAlign);
+
+        if (tDeco === 'underline') {
+          const metrics = ctx.measureText(value);
+          const textWidth = metrics.width;
+          let lineX = textX;
+          if (tAlign === 'center') lineX = textX - textWidth / 2;
+          if (tAlign === 'right') lineX = textX - textWidth;
+
+          ctx.beginPath();
+          ctx.strokeStyle = p.color || "white";
+          ctx.lineWidth = Math.max(1, fSize / 15);
+          ctx.moveTo(lineX, p.y + fSize + fSize * 0.15);
+          ctx.lineTo(lineX + textWidth, p.y + fSize + fSize * 0.15);
+          ctx.stroke();
+        }
       }
     });
 
