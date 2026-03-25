@@ -4,7 +4,12 @@ import dbConnect from './lib/mongoose.js';
 import { Campaign } from './lib/models.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (dbErr) {
+    console.error("DB Connect Error:", dbErr);
+    return res.status(500).json({ success: false, error: "Database connection failed", details: String(dbErr) });
+  }
 
   const { method } = req;
   const { id, status, slug } = req.query;
@@ -20,7 +25,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const campaign = await Campaign.findOne({ slug });
           return res.status(200).json(campaign);
         }
-        // General query
         const query: any = {};
         if (status) query.status = status;
         if (req.query.owner_id) query.owner_id = req.query.owner_id;
@@ -28,22 +32,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const campaigns = await Campaign.find(query).sort({ created_at: -1 });
         return res.status(200).json(campaigns);
       } catch (error) {
+        console.error("GET Error:", error);
         return res.status(400).json({ success: false, error: String(error) });
       }
 
     case 'POST':
       try {
+        console.log("Creating campaign with body:", JSON.stringify(req.body).slice(0, 500));
         const campaign = await Campaign.create(req.body);
         return res.status(201).json(campaign);
       } catch (error) {
-        return res.status(400).json({ success: false, error: String(error) });
+        console.error("POST Error:", error);
+        return res.status(500).json({ success: false, error: "Campaign creation failed", details: String(error) });
       }
 
-    case 'PATCH': // Used for updates like status approvals
+    case 'PATCH':
       try {
         const campaign = await Campaign.findByIdAndUpdate(id, req.body, { new: true });
         return res.status(200).json(campaign);
       } catch (error) {
+        console.error("PATCH Error:", error);
         return res.status(400).json({ success: false, error: String(error) });
       }
     
@@ -52,6 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           await Campaign.findByIdAndDelete(id);
           return res.status(200).json({ success: true });
         } catch (error) {
+          console.error("DELETE Error:", error);
           return res.status(400).json({ success: false, error: String(error) });
         }
 
