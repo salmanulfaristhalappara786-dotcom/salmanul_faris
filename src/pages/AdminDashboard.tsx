@@ -275,6 +275,26 @@ const AdminDashboard = () => {
                 <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-indigo-100/20 border border-gray-50 group hover:scale-[1.02] transition-transform"><h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Campaigns</h4><div className="flex items-center gap-6"><div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><ImageIcon size={30} /></div><span className="text-6xl font-black text-gray-900">{stats.campaigns}</span></div></div>
                 <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-purple-100/20 border border-gray-50 group hover:scale-[1.02] transition-transform"><h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Submissions</h4><div className="flex items-center gap-6"><div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600"><Plus size={30} className="rotate-45" /></div><span className="text-6xl font-black text-gray-900">{stats.submissions}</span></div></div>
              </div>
+          ) : activeTab === "gallery" ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allCampaigns.map((camp: any) => (
+                    <div key={camp._id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden group hover:scale-[1.02] transition-transform">
+                        <div className="aspect-square relative overflow-hidden">
+                            <img src={camp.frame_url} alt={camp.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-600 shadow-sm border border-indigo-100">{camp.status}</div>
+                        </div>
+                        <div className="p-8">
+                            <h4 className="text-xl font-black text-gray-900 mb-2 truncate">{camp.title}</h4>
+                            <p className="text-gray-400 text-xs font-bold mb-6 truncate">URL: /{camp.slug}</p>
+                            <div className="flex gap-2">
+                                <Button onClick={() => { setCampaignTitle(camp.title); setFrameImage(camp.frame_url); setPlaceholders(camp.placeholders || []); setActiveTab("create"); }} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 h-12 rounded-xl text-[10px] font-black uppercase">Edit Frame</Button>
+                                <Button onClick={async () => { if(confirm("Delete this campaign?")) { await fetch(`/api/campaigns?id=${camp._id}`, { method: 'DELETE' }); toast.success("Campaign Deleted"); fetchData(); } }} variant="outline" className="h-12 w-12 rounded-xl text-red-500 border-gray-50 flex items-center justify-center"><Trash2 size={18} /></Button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                {allCampaigns.length === 0 && <div className="col-span-full py-20 text-center text-gray-400 font-bold uppercase tracking-widest bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">No campaigns found</div>}
+             </div>
           ) : activeTab === "users" ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {userRequests.map((req: any) => (
@@ -287,6 +307,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 ))}
+                {userRequests.length === 0 && <div className="col-span-full py-20 text-center text-gray-400 font-bold uppercase tracking-widest bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">No user requests found</div>}
              </div>
           ) : null}
         </div>

@@ -12,7 +12,12 @@ const Login = () => {
   const isAdminMode = searchParams.get("mode") === "admin";
 
   useEffect(() => {
-    document.title = isAdminMode ? "Admin Login | Focal Knot" : "Sign In | Focal Knot";
+    if (isAdminMode) {
+      navigate("/admin/login");
+      return;
+    }
+    
+    document.title = isAdminMode ? "Admin Login | Salmanul Faris" : "Sign In | Salmanul Faris";
     if (user) {
         if (isAdminMode && user.role !== 'admin') {
             toast.error("You do not have admin access.");
@@ -52,7 +57,7 @@ const Login = () => {
             {isAdminMode ? "Admin Login" : "Sign In"}
           </h2>
           <p className="text-gray-500 mb-8 font-medium">
-            {isAdminMode ? "Access the dashboard to rule the site." : "Welcome back to Focal Knot."}
+            {isAdminMode ? "Access the dashboard to rule the site." : "Welcome back to Salmanul Faris."}
           </p>
           
           <div className="py-6 flex flex-col items-center gap-4">
