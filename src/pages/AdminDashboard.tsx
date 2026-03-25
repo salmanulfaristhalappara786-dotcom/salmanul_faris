@@ -271,7 +271,10 @@ const AdminDashboard = () => {
                                             lineHeight: p.lineHeight
                                           }}>{p.previewText || p.label}</span>
                                         ) : (
-                                          <span className="text-[8px] font-black text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full">{p.type.toUpperCase()}</span>
+                                          <div className="flex flex-col items-center gap-1">
+                                            <ImageIcon size={p.width/5} className="text-indigo-400 opacity-40" />
+                                            <span className="text-[8px] font-black text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full">{p.type.toUpperCase()}</span>
+                                          </div>
                                         )}
                                     </div>
                                     {selectedId === p.id && <button onClick={() => deletePlaceholder(p.id)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:scale-110 transition-transform z-30"><X size={12} /></button>}
@@ -288,7 +291,10 @@ const AdminDashboard = () => {
                        <div className="space-y-4">
                           <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Elements</p>
                           <div className="flex flex-col gap-3">
-                             <Button onClick={() => addPlaceholder('rectangle')} className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-white font-black rounded-xl py-6 flex items-center justify-between px-6 shadow-lg shadow-green-100">Add Placeholder <Plus size={18} /></Button>
+                             <div className="grid grid-cols-2 gap-3">
+                                <Button onClick={() => addPlaceholder('rectangle')} className="bg-[#22C55E] hover:bg-[#16A34A] text-white font-black rounded-xl py-6 flex items-center justify-center gap-2 shadow-lg shadow-green-100"><Square size={18} /> Rectangle</Button>
+                                <Button onClick={() => addPlaceholder('circle')} className="bg-[#10B981] hover:bg-[#059669] text-white font-black rounded-xl py-6 flex items-center justify-center gap-2 shadow-lg shadow-emerald-100"><CircleIcon size={18} /> Circle</Button>
+                             </div>
                              <Button onClick={() => addPlaceholder('text')} className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl py-6 flex items-center justify-center gap-3 shadow-lg shadow-blue-100"><TypeIcon size={18} /> Add Text Field</Button>
                           </div>
                        </div>
