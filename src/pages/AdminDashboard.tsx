@@ -204,7 +204,12 @@ const AdminDashboard = () => {
       if (!saveRes.ok) {
         const errorMsg = await saveRes.text();
         console.error("API Error:", errorMsg);
-        throw new Error(`Server responded with ${saveRes.status}`);
+        try {
+            const errJson = JSON.parse(errorMsg);
+            throw new Error(errJson.error + ": " + (errJson.details || ""));
+        } catch (e) {
+            throw new Error(`Server Error (${saveRes.status}): ${errorMsg.slice(0, 100)}`);
+        }
       }
       
       toast.dismiss(loadingToastId);
