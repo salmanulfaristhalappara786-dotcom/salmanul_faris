@@ -11,11 +11,11 @@ export const Footer = () => {
             <Link to="/" className="flex items-center gap-4 mb-6 group inline-flex">
               <img 
                 src="/logo.png" 
-                alt="Focal Knot Logo" 
+                alt="Salmanul Faris Logo" 
                 className="h-10 w-10 object-contain shadow-lg shadow-indigo-100/50 rounded-xl group-hover:scale-110 transition-transform duration-300"
               />
               <span className="font-black text-xl text-gray-900 tracking-tight leading-none group-hover:text-indigo-600 transition-colors">
-                Focal Knot<span className="text-indigo-600 text-3xl leading-[0]">.</span>
+                Salmanul Faris<span className="text-indigo-600 text-3xl leading-[0]">.</span>
               </span>
             </Link>
             <p className="text-gray-500 font-medium leading-relaxed max-w-sm">
@@ -55,7 +55,7 @@ export const Footer = () => {
 
         <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 font-bold text-sm">
-            © {new Date().getFullYear()} Focal Knot. Built by Salman Faris. All rights reserved.
+            © {new Date().getFullYear()} Salmanul Faris. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm font-bold text-gray-400">
             <a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>

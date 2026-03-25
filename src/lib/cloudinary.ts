@@ -13,7 +13,7 @@ export const uploadToCloudinary = async (
 ): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'focal_knot_unsigned');
+  formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'salmanulfaris_unsigned');
 
   try {
     const response = await axios.post(

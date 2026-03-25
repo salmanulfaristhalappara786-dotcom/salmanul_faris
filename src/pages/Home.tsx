@@ -9,7 +9,7 @@ const Home = () => {
   const photos = ["/_NAS8219.JPG", "/DSC01910.JPG"];
 
   useEffect(() => {
-    document.title = "Focal Knot | Salman Faris — Creative Designer, Developer & Educator";
+    document.title = "Salmanul Faris — Creative Designer, Developer & Educator";
   }, []);
 
   // Auto-cycle photos
@@ -38,12 +38,12 @@ const Home = () => {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-gray-900 leading-[1.1] mb-8 tracking-tight">
-              Focal Knot <br />
+              Salmanul Faris <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">Designs that Speak.</span>
             </h1>
             
             <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              I am Salman Faris — crafting high-end poster designs and digital experiences that resonate. Turning complex ideas into simple, meaningful focus points.
+              I am Salmanul Faris — crafting high-end poster designs and digital experiences that resonate. Turning complex ideas into simple, meaningful focus points.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
@@ -71,7 +71,7 @@ const Home = () => {
                   <img
                     key={src}
                     src={src}
-                    alt={`FK Focal Knot Portfolio ${i + 1}`}
+                    alt={`Salmanul Faris Portfolio ${i + 1}`}
                     className={`rounded-[2.5rem] w-full h-[560px] object-cover transition-all duration-700 absolute inset-3 ${
                       activePhoto === i ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'
                     } ${i === 0 ? 'relative' : 'absolute'}`}
@@ -125,7 +125,7 @@ const Home = () => {
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-6">Explore <span className="text-indigo-600">Focal Knot</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-6">Explore <span className="text-indigo-600">Salmanul Faris</span></h2>
             <p className="text-lg text-gray-500 font-medium">Discover the different sections of our platform designed to help you engage, create, and manage campaigns effortlessly.</p>
           </div>
 
@@ -152,7 +152,7 @@ const Home = () => {
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Meet the Creator</h3>
               <p className="text-gray-500 font-medium leading-relaxed mb-8">
-                Get to know Salman Faris, the creative mind behind Focal Knot. Learn about his journey in design, development, and education.
+                Get to know Salmanul Faris, the creative mind behind this platform. Learn about his journey in design, development, and education.
               </p>
               <Link to="/about" className="inline-flex items-center text-purple-600 font-bold gap-2 group-hover:translate-x-2 transition-transform">
                 Read the Story <ChevronRight size={18} />

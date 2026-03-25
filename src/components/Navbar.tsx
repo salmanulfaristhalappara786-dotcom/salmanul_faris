@@ -28,11 +28,11 @@ export const Navbar = () => {
           <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
             <img 
               src="/logo.png" 
-              alt="Focal Knot Logo" 
+              alt="Salmanul Faris Logo" 
               className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" 
             />
-            <span className="text-xl font-black text-gray-900 tracking-tighter hidden sm:inline">
-              FOCAL KNOT<span className="text-indigo-600">.</span>
+            <span className="text-xl font-black text-gray-900 tracking-tighter hidden sm:inline uppercase">
+              Salmanul Faris<span className="text-indigo-600">.</span>
             </span>
           </Link>
 
