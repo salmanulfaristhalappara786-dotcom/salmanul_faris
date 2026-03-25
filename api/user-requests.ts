@@ -1,10 +1,15 @@
 // @ts-nocheck
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import dbConnect from './lib/mongoose.js';
-import { UserRequest } from './lib/models.js';
+import dbConnect from './lib/mongoose';
+import { UserRequest } from './lib/models';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (dbErr) {
+    console.error("DB Connect Error:", dbErr);
+    return res.status(500).json({ success: false, error: "Database connection failed", details: String(dbErr) });
+  }
 
   const { method } = req;
   const { user_id, id } = req.query;
