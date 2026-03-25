@@ -48,7 +48,7 @@ const Login = () => {
           <div className="flex justify-center mb-8">
             <img 
               src="/logo.png" 
-              alt="Focal Knot Logo" 
+              alt="Salmanul Faris Logo" 
               className="w-20 h-20 object-contain shadow-2xl shadow-indigo-100/50 rounded-3xl transition-transform hover:scale-110 duration-500" 
             />
           </div>
