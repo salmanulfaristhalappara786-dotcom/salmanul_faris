@@ -86,7 +86,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (!authLoading) {
         if (!user || user.role !== 'admin') {
-            navigate("/login?mode=admin");
+            navigate("/admin/login");
         } else {
             fetchData();
         }

@@ -13,6 +13,7 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (googleToken: string) => Promise<void>;
+  adminLogin: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -49,16 +50,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('fk_user', JSON.stringify(data.user));
   };
 
+  const adminLogin = (user: User, token: string) => {
+    setToken(token);
+    setUser(user);
+    localStorage.setItem('fk_token', token);
+    localStorage.setItem('fk_user', JSON.stringify(user));
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('fk_token');
     localStorage.removeItem('fk_user');
-    localStorage.removeItem('fk_admin_session'); // Legacy cleanup
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, adminLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

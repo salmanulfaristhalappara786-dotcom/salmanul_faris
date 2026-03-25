@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import Campaigns from "./pages/Campaigns";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 import Participate from "./pages/Participate";
 import Share from "./pages/Share";
 import UserDashboard from "./pages/UserDashboard";
@@ -54,6 +56,7 @@ const App = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/participate/:id" element={<Participate />} />
                 <Route path="/share/:id" element={<Share />} />
