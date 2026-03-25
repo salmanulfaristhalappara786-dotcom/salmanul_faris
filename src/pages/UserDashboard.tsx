@@ -202,7 +202,7 @@ const UserDashboard = () => {
             <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
             <p className="text-gray-400 font-bold mt-1">Manage your active campaigns.</p>
           </div>
-          <Button onClick={() => navigate("/admin")} className="bg-indigo-600 hover:bg-indigo-700 h-16 px-10 rounded-2xl text-lg font-black shadow-2xl flex items-center gap-3">
+          <Button onClick={() => navigate("/studio")} className="bg-indigo-600 hover:bg-indigo-700 h-16 px-10 rounded-2xl text-lg font-black shadow-2xl flex items-center gap-3">
             <Plus size={22} /> Create New Card
           </Button>
         </header>
@@ -231,7 +231,7 @@ const UserDashboard = () => {
                   </span>
                   <div className="flex gap-2 mt-6">
                     <Button onClick={() => navigate(`/participate/${c.slug}`)} className="bg-indigo-600 h-10 px-6 rounded-xl text-xs font-black">View Live</Button>
-                    <Button onClick={() => navigate(`/admin?edit=${c._id}`)} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
+                    <Button onClick={() => navigate(`/studio?edit=${c._id}`)} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
                     <Button onClick={async () => {
                         if(confirm("Are you sure you want to delete this frame?")) {
                           const res = await fetch(`/api/campaigns?id=${c._id}`, { method: 'DELETE' });

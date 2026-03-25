@@ -93,33 +93,37 @@ const AdminDashboard = () => {
         if (!user) {
             navigate("/admin/login");
         } else {
+            const isStudio = window.location.pathname.startsWith("/studio");
+            const isAdminPath = window.location.pathname.startsWith("/admin");
+            
+            if (isAdminPath && user.role !== 'admin') {
+                navigate("/dashboard");
+                return;
+            }
+
             fetchData();
+            
+            if (isStudio) {
+                setActiveTab("create");
+            }
+
             // Handle edit parameter
             const params = new URLSearchParams(window.location.search);
             const editId = params.get('edit');
             if (editId) {
-                const campToEdit = allCampaigns.find(c => c._id === editId);
-                if (campToEdit) {
-                    setEditId(editId);
-                    setCampaignTitle(campToEdit.title);
-                    setFrameImage(campToEdit.frame_url);
-                    setPlaceholders(campToEdit.placeholders || []);
-                    setActiveTab("create");
-                } else {
-                    fetch(`/api/campaigns?id=${editId}`).then(r => r.json()).then(data => {
-                        if (data && !data.error) {
-                            setEditId(editId);
-                            setCampaignTitle(data.title);
-                            setFrameImage(data.frame_url);
-                            setPlaceholders(data.placeholders || []);
-                            setActiveTab("create");
-                        }
-                    });
-                }
+                setEditId(editId);
+                fetch(`/api/campaigns?id=${editId}`).then(r => r.json()).then(data => {
+                    if (data && !data.error) {
+                        setCampaignTitle(data.title);
+                        setFrameImage(data.frame_url);
+                        setPlaceholders(data.placeholders || []);
+                        setActiveTab("create");
+                    }
+                });
             }
         }
     }
-  }, [user, authLoading, navigate, fetchData, allCampaigns]);
+  }, [user, authLoading, navigate, fetchData]);
 
   const handleFrameUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -259,11 +263,15 @@ const AdminDashboard = () => {
             <h2 className="text-lg font-black text-gray-900 tracking-tight">Admin</h2>
           </div>
           <nav className="space-y-1">
-            {user?.role === 'admin' && <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>}
+            {user?.role === 'admin' && !window.location.pathname.startsWith("/studio") && (
+              <>
+                <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
+                <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>
+                <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>
+              </>
+            )}
             <button onClick={() => setActiveTab("create")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "create" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><ImageIcon size={20} /> Create Frame</button>
-            {user?.role === 'admin' && <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>}
             <button onClick={() => setActiveTab("gallery")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "gallery" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Plus size={20} className="rotate-45" /> All Frames</button>
-            {user?.role === 'admin' && <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>}
           </nav>
         </div>
         <div className="mt-auto p-10 border-t border-gray-50"><button onClick={() => { logout(); navigate("/"); }} className="w-full flex items-center justify-center gap-3 px-6 py-5 rounded-2xl text-sm font-black text-red-500 hover:bg-red-50 transition-all"><LogOut size={20} /> Logout</button></div>
