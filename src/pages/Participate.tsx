@@ -155,38 +155,49 @@ const Participate = () => {
     canvas.width = frameImg.width;
     canvas.height = frameImg.height;
 
-    // Draw images
+    const scaleX = frameImg.width / 500;
+    const scaleY = frameImg.height / 500;
+
+    // Draw images first
     for (const p of imagePlaceholders) {
       if (placeholderData[p.id]?.image && placeholderData[p.id]?.pixels) {
         ctx.save();
+        
+        const scaledX = p.x * scaleX;
+        const scaledY = p.y * scaleY;
+        const scaledWidth = p.width * scaleX;
+        const scaledHeight = p.height * scaleY;
+        const scaledRadius = (p.borderRadius || 0) * scaleX;
+
         if (p.type === 'circle') {
           ctx.beginPath();
-          ctx.arc(p.x + p.width/2, p.y + p.height/2, p.width/2, 0, Math.PI * 2);
+          ctx.arc(scaledX + scaledWidth/2, scaledY + scaledHeight/2, scaledWidth/2, 0, Math.PI * 2);
           ctx.clip();
-        } else if (p.type === 'rectangle' && p.borderRadius) {
-          const r = p.borderRadius;
+        } else if (p.type === 'rectangle' && scaledRadius > 1) {
           ctx.beginPath();
-          ctx.moveTo(p.x + r, p.y);
-          ctx.lineTo(p.x + p.width - r, p.y);
-          ctx.quadraticCurveTo(p.x + p.width, p.y, p.x + p.width, p.y + r);
-          ctx.lineTo(p.x + p.width, p.y + p.height - r);
-          ctx.quadraticCurveTo(p.x + p.width, p.y + p.height, p.x + p.width - r, p.y + p.height);
-          ctx.lineTo(p.x + r, p.y + p.height);
-          ctx.quadraticCurveTo(p.x, p.y + p.height, p.x, p.y + p.height - r);
-          ctx.lineTo(p.x, p.y + r);
-          ctx.quadraticCurveTo(p.x, p.y, p.x + r, p.y);
+          ctx.moveTo(scaledX + scaledRadius, scaledY);
+          ctx.lineTo(scaledX + scaledWidth - scaledRadius, scaledY);
+          ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY, scaledX + scaledWidth, scaledY + scaledRadius);
+          ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight - scaledRadius);
+          ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY + scaledHeight, scaledX + scaledWidth - scaledRadius, scaledY + scaledHeight);
+          ctx.lineTo(scaledX + scaledRadius, scaledY + scaledHeight);
+          ctx.quadraticCurveTo(scaledX, scaledY + scaledHeight, scaledX, scaledY + scaledHeight - scaledRadius);
+          ctx.lineTo(scaledX, scaledY + scaledRadius);
+          ctx.quadraticCurveTo(scaledX, scaledY, scaledX + scaledRadius, scaledY);
           ctx.closePath();
           ctx.clip();
         }
+
         const data = placeholderData[p.id];
         const userImg = new Image();
         userImg.src = data.image as string;
         await new Promise(resolve => userImg.onload = resolve);
-        ctx.drawImage(userImg, data.pixels.x, data.pixels.y, data.pixels.width, data.pixels.height, p.x, p.y, p.width, p.height);
+        ctx.drawImage(userImg, data.pixels.x, data.pixels.y, data.pixels.width, data.pixels.height, scaledX, scaledY, scaledWidth, scaledHeight);
         ctx.restore();
       }
     }
 
+    // Draw frame ON TOP of images
     ctx.drawImage(frameImg, 0, 0);
 
     // Text Wrap logic
@@ -217,15 +228,22 @@ const Participate = () => {
         const fStyle = p.fontStyle || 'normal';
         const tDeco = p.textDecoration || 'none';
         
-        ctx.font = `${fStyle} ${fWeight} ${fSize}px "${fFamily}"`;
+        const sx = frameImg.width / 500;
+        const sy = frameImg.height / 500;
+
+        ctx.font = `${fStyle} ${fWeight} ${fSize * sx}px "${fFamily}"`;
         ctx.fillStyle = p.color || "white";
         ctx.textBaseline = 'top';
         
-        let textX = p.x + p.width/2;
-        if (tAlign === 'left') textX = p.x;
-        if (tAlign === 'right') textX = p.x + p.width;
+        const scaledX = p.x * sx;
+        const scaledY = p.y * sy;
+        const scaledWidth = p.width * sx;
 
-        drawWrappedText(value, textX, p.y + fSize, p.width, fSize, lHeight, tAlign as CanvasTextAlign);
+        let textX = scaledX + scaledWidth/2;
+        if (tAlign === 'left') textX = scaledX;
+        if (tAlign === 'right') textX = scaledX + scaledWidth;
+
+        drawWrappedText(value, textX, scaledY, scaledWidth, fSize * sx, lHeight, tAlign as CanvasTextAlign);
 
         if (tDeco === 'underline') {
           const metrics = ctx.measureText(value);
@@ -236,9 +254,9 @@ const Participate = () => {
 
           ctx.beginPath();
           ctx.strokeStyle = p.color || "white";
-          ctx.lineWidth = Math.max(1, fSize / 15);
-          ctx.moveTo(lineX, p.y + fSize + fSize * 1.1);
-          ctx.lineTo(lineX + textWidth, p.y + fSize + fSize * 1.1);
+          ctx.lineWidth = Math.max(1, (fSize * sx) / 15);
+          ctx.moveTo(lineX, scaledY + (fSize * sx) * 1.1);
+          ctx.lineTo(lineX + textWidth, scaledY + (fSize * sx) * 1.1);
           ctx.stroke();
         }
       }
