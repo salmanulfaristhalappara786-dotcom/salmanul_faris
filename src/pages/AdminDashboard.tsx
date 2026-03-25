@@ -57,6 +57,7 @@ const AdminDashboard = () => {
   const [userRequests, setUserRequests] = useState<any[]>([]);
   const [stats, setStats] = useState({ campaigns: 0, submissions: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [newCampaignData, setNewCampaignData] = useState({ title: "", description: "", slug: "" });
 
   const fetchData = useCallback(async () => {
@@ -89,13 +90,36 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (!authLoading) {
-        if (!user || user.role !== 'admin') {
+        if (!user) {
             navigate("/admin/login");
         } else {
             fetchData();
+            // Handle edit parameter
+            const params = new URLSearchParams(window.location.search);
+            const editId = params.get('edit');
+            if (editId) {
+                const campToEdit = allCampaigns.find(c => c._id === editId);
+                if (campToEdit) {
+                    setEditId(editId);
+                    setCampaignTitle(campToEdit.title);
+                    setFrameImage(campToEdit.frame_url);
+                    setPlaceholders(campToEdit.placeholders || []);
+                    setActiveTab("create");
+                } else {
+                    fetch(`/api/campaigns?id=${editId}`).then(r => r.json()).then(data => {
+                        if (data && !data.error) {
+                            setEditId(editId);
+                            setCampaignTitle(data.title);
+                            setFrameImage(data.frame_url);
+                            setPlaceholders(data.placeholders || []);
+                            setActiveTab("create");
+                        }
+                    });
+                }
+            }
         }
     }
-  }, [user, authLoading, navigate, fetchData]);
+  }, [user, authLoading, navigate, fetchData, allCampaigns]);
 
   const handleFrameUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,8 +212,8 @@ const AdminDashboard = () => {
       
       if (!publicUrl) throw new Error("Upload failed.");
 
-      const saveRes = await fetch('/api/campaigns', {
-        method: 'POST',
+      const saveRes = await fetch(editId ? `/api/campaigns?id=${editId}` : '/api/campaigns', {
+        method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             title: newCampaignData.title,
@@ -235,11 +259,11 @@ const AdminDashboard = () => {
             <h2 className="text-lg font-black text-gray-900 tracking-tight">Admin</h2>
           </div>
           <nav className="space-y-1">
-            <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
+            {user?.role === 'admin' && <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>}
             <button onClick={() => setActiveTab("create")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "create" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><ImageIcon size={20} /> Create Frame</button>
-            <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>
-            <button onClick={() => setActiveTab("gallery")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "gallery" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Plus size={20} className="rotate-45" /> Gallery</button>
-            <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>
+            {user?.role === 'admin' && <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>}
+            <button onClick={() => setActiveTab("gallery")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "gallery" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Plus size={20} className="rotate-45" /> All Frames</button>
+            {user?.role === 'admin' && <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>}
           </nav>
         </div>
         <div className="mt-auto p-10 border-t border-gray-50"><button onClick={() => { logout(); navigate("/"); }} className="w-full flex items-center justify-center gap-3 px-6 py-5 rounded-2xl text-sm font-black text-red-500 hover:bg-red-50 transition-all"><LogOut size={20} /> Logout</button></div>
@@ -247,7 +271,7 @@ const AdminDashboard = () => {
 
       <main className="flex-1 overflow-y-auto bg-[#FDFEFF]">
         <header className="bg-white/80 backdrop-blur-xl sticky top-0 px-12 py-8 flex items-center justify-between z-10 border-b border-gray-50">
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">{activeTab === "create" ? "Frame Studio" : "Admin Insights"}</h2>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">{activeTab === "create" ? "Frame Studio" : activeTab === "gallery" ? "All Content Library" : "Admin Insights"}</h2>
           <div className="flex gap-4">
              <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 rounded-2xl px-8 py-4 font-black shadow-xl flex items-center gap-2"><Save size={20} /> Push Campaign</Button>
           </div>
@@ -407,7 +431,7 @@ const AdminDashboard = () => {
                             <h4 className="text-xl font-black text-gray-900 mb-2 truncate">{camp.title}</h4>
                             <p className="text-gray-400 text-xs font-bold mb-6 truncate">URL: /{camp.slug}</p>
                             <div className="flex gap-2">
-                                <Button onClick={() => { setCampaignTitle(camp.title); setFrameImage(camp.frame_url); setPlaceholders(camp.placeholders || []); setActiveTab("create"); }} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 h-12 rounded-xl text-[10px] font-black uppercase">Edit Frame</Button>
+                                <Button onClick={() => { setEditId(camp._id); setCampaignTitle(camp.title); setFrameImage(camp.frame_url); setPlaceholders(camp.placeholders || []); setActiveTab("create"); }} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 h-12 rounded-xl text-[10px] font-black uppercase">Edit Frame</Button>
                                 <Button onClick={async () => { if(confirm("Delete this campaign?")) { await fetch(`/api/campaigns?id=${camp._id}`, { method: 'DELETE' }); toast.success("Campaign Deleted"); fetchData(); } }} variant="outline" className="h-12 w-12 rounded-xl text-red-500 border-gray-50 flex items-center justify-center"><Trash2 size={18} /></Button>
                             </div>
                         </div>

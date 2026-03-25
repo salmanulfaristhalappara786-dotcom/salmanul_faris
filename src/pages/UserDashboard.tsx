@@ -230,7 +230,17 @@ const UserDashboard = () => {
                     {c.status.toUpperCase()}
                   </span>
                   <div className="flex gap-2 mt-6">
-                    <Button onClick={() => navigate(`/participate/${c._id}`)} className="bg-indigo-600 h-10 px-6 rounded-xl text-xs font-black">View Live</Button>
+                    <Button onClick={() => navigate(`/participate/${c.slug}`)} className="bg-indigo-600 h-10 px-6 rounded-xl text-xs font-black">View Live</Button>
+                    <Button onClick={() => navigate(`/admin?edit=${c._id}`)} variant="outline" className="h-10 px-4 rounded-xl text-gray-600 border-gray-100 font-bold flex items-center gap-2"><Edit size={14} /> Edit</Button>
+                    <Button onClick={async () => {
+                        if(confirm("Are you sure you want to delete this frame?")) {
+                          const res = await fetch(`/api/campaigns?id=${c._id}`, { method: 'DELETE' });
+                          if (res.ok) {
+                            toast.success("Frame deleted successfully");
+                            fetchProfileAndData(user!.id);
+                          }
+                        }
+                    }} variant="outline" className="h-10 px-4 rounded-xl text-red-500 border-red-50 font-bold flex items-center gap-2 hover:bg-red-50"><Trash2 size={14} /> Delete</Button>
                   </div>
                 </div>
               </div>
