@@ -1,19 +1,20 @@
 import axios from 'axios';
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'salmanulfaris_unsigned';
 
-
-/**
- * Uploads a file to Cloudinary using unsigned upload.
- * Note: You need to enable 'Unsigned uploading' in Cloudinary Settings -> Upload -> Upload Presets
- */
 export const uploadToCloudinary = async (
   file: File | Blob, 
   onProgress?: (percent: number) => void
 ): Promise<string> => {
+  if (!CLOUD_NAME) {
+    console.error('Cloudinary Cloud Name is missing in environment variables!');
+    throw new Error('Cloudinary configuration error. Check VITE_CLOUDINARY_CLOUD_NAME.');
+  }
+
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'salmanulfaris_unsigned');
+  formData.append('upload_preset', UPLOAD_PRESET);
 
   try {
     const response = await axios.post(
