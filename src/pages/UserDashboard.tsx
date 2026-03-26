@@ -305,9 +305,7 @@ const UserDashboard = () => {
                                 <div className="flex-1 space-y-4">
                                     <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
                                     <div className="flex gap-2">
-                                        <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
-                                        <Button onClick={() => { setEditCampaignData(c); setIsEditing(true); }} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600"><Edit3 size={18} /></Button>
-                                        <Button onClick={() => handleDelete(c._id)} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-red-600"><Trash2 size={18} /></Button>
+                                        <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="w-full bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
                                     </div>
                                 </div>
                             </div>
