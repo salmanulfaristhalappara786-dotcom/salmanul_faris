@@ -90,11 +90,11 @@ const Participate = () => {
             userImg.src = data.image as string;
             await new Promise(resolve => userImg.onload = resolve);
 
-            // CALCULATE POSITION USING PERCENTAGE (ROBUST) OR FALLBACK
-            const scaledX = p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx;
-            const scaledY = p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx;
-            const scaledWidth = p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx;
-            const scaledHeight = p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx;
+            // USE PERCENTAGE IF AVAILABLE, ELSE FALLBACK TO SX SCALING
+            const scaledX = Math.round(p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx);
+            const scaledY = Math.round(p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx);
+            const scaledWidth = Math.round(p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx);
+            const scaledHeight = Math.round(p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx);
 
             ctx.save();
             if (p.type === 'circle') {
@@ -102,9 +102,13 @@ const Participate = () => {
                 ctx.arc(scaledX + scaledWidth/2, scaledY + scaledHeight/2, scaledWidth/2, 0, Math.PI * 2);
                 ctx.clip();
             } else if (p.borderRadius) {
-                const r = (p.borderRadius / (p.width || 100)) * scaledWidth;
+                const r = Math.round((p.borderRadius / (p.width || 100)) * scaledWidth);
                 ctx.beginPath();
-                ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight, r);
+                if (ctx.roundRect) {
+                  ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight, r);
+                } else {
+                  ctx.rect(scaledX, scaledY, scaledWidth, scaledHeight);
+                }
                 ctx.clip();
             }
             
@@ -121,12 +125,12 @@ const Participate = () => {
                 const value = userData[p.id] || "";
                 if (!value) continue;
 
-                const scaledX = p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx;
-                const scaledY = p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx;
-                const scaledWidth = p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx;
-                const scaledHeight = p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx;
+                const scaledX = Math.round(p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx);
+                const scaledY = Math.round(p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx);
+                const scaledWidth = Math.round(p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx);
+                const scaledHeight = Math.round(p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx);
 
-                const fontSize = (p.fontSize || 24) * sx;
+                const fontSize = Math.round((p.fontSize || 24) * sx);
                 const textAlign = p.textAlign || 'center';
                 const fontFamily = p.fontFamily || 'Arial';
 
