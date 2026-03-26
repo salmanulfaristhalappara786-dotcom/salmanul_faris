@@ -194,6 +194,8 @@ const UserDashboard = () => {
     </button>
   );
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -205,7 +207,7 @@ const UserDashboard = () => {
   // RESTRICED ACCESS VIEW: If not approved
   if (!profileRequest || profileRequest.status !== 'approved') {
     return (
-      <div className="min-h-screen bg-[#FDFEFF] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#FDFEFF] flex items-center justify-center p-6 mt-16 lg:mt-0">
         <div className="max-w-md w-full bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-50 text-center relative overflow-hidden">
              <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
              
@@ -285,15 +287,16 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFEFF] flex">
-      <aside className="w-80 bg-white border-r border-gray-50 flex flex-col p-10 pt-16">
-        <div className="mb-12">
+    <div className="flex h-screen bg-[#FDFEFF]">
+      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white border-r border-gray-50 flex flex-col shadow-2xl lg:shadow-none transition-transform duration-300 z-[100] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} pt-16 lg:pt-0 shrink-0`}>
+        <div className="p-10 shrink-0 relative">
+          <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400"><XCircle size={24} /></button>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100">
                {profileRequest?.username?.[0]?.toUpperCase() || 'U'}
             </div>
             <div>
-              <h3 className="font-black text-gray-900 leading-tight">@{profileRequest?.username}</h3>
+              <h3 className="font-black text-gray-900 leading-tight truncate max-w-[150px]">@{profileRequest?.username}</h3>
               <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
                 <ShieldCheck size={10} /> Authorized Creator
               </p>
@@ -301,14 +304,14 @@ const UserDashboard = () => {
           </div>
         </div>
         
-        <nav className="space-y-4">
-            <SidebarBtn label="OVER VIEW" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsEditing(false); }} />
-            <SidebarBtn label="CREATE FRAME" active={false} onClick={() => { setIsEditing(true); setEditCampaignData(null); }} />
-            <SidebarBtn label="ALL FRAMES" active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setIsEditing(false); }} />
-            <SidebarBtn label="MY FRAMES" active={activeTab === 'my'} onClick={() => { setActiveTab('my'); setIsEditing(false); }} />
+        <nav className="space-y-4 px-10 overflow-y-auto flex-1 h-full pb-6">
+            <SidebarBtn label="OVER VIEW" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsEditing(false); setSidebarOpen(false); }} />
+            <SidebarBtn label="CREATE FRAME" active={false} onClick={() => { setIsEditing(true); setEditCampaignData(null); setSidebarOpen(false); }} />
+            <SidebarBtn label="ALL FRAMES" active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setIsEditing(false); setSidebarOpen(false); }} />
+            <SidebarBtn label="MY FRAMES" active={activeTab === 'my'} onClick={() => { setActiveTab('my'); setIsEditing(false); setSidebarOpen(false); }} />
         </nav>
 
-        <div className="mt-auto pt-10 border-t border-gray-50 flex flex-col gap-4">
+        <div className="mt-auto p-10 pt-6 border-t border-gray-50 flex flex-col gap-4 shrink-0">
           <Button onClick={() => navigate("/")} variant="ghost" className="w-full h-14 rounded-xl text-gray-600 font-black gap-2">
              Home Page
           </Button>
@@ -318,7 +321,17 @@ const UserDashboard = () => {
         </div>
       </aside>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-8 lg:p-12 overflow-y-auto">
+      {sidebarOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
+
+      <main className="flex-1 w-full bg-[#FDFEFF] overflow-y-auto pt-16 lg:pt-0">
+        <header className="px-6 md:px-12 py-6 md:py-8 flex items-center gap-4 sticky top-0 bg-white/80 backdrop-blur-xl z-10 border-b border-gray-50 lg:hidden">
+            <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400">
+                <span className="sr-only">Open Menu</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase">Dashboard</h2>
+        </header>
+        <div className="p-8 lg:p-12 max-w-7xl mx-auto">
         {isEditing ? (
             <FrameEditor
                 key={editCampaignData?._id || 'new'}
@@ -341,7 +354,7 @@ const UserDashboard = () => {
             />
         ) : (
           <div className="space-y-12 animate-in fade-in duration-700">
-             <header className="flex flex-col gap-2">
+             <header className="hidden lg:flex flex-col gap-2">
                 <h2 className="text-4xl font-black text-gray-900 tracking-tight uppercase">Studio <span className="text-indigo-600">Dashboard</span></h2>
                 <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">Digital Content Management</p>
              </header>
@@ -367,12 +380,12 @@ const UserDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl border border-gray-50 flex items-center justify-between group overflow-hidden relative">
+                    <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl border border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6 group overflow-hidden relative text-center md:text-left">
                         <div>
                             <h3 className="text-3xl font-black text-gray-800">Start New Project</h3>
                             <p className="text-gray-400 font-bold mt-1 uppercase text-xs tracking-widest">Create a fresh card design.</p>
                         </div>
-                        <button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-24 px-12 rounded-[2rem] text-white flex items-center gap-4 transition-all hover:scale-[1.05] shadow-2xl shadow-indigo-200">
+                        <button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 h-24 px-12 rounded-[2rem] text-white flex justify-center md:justify-start items-center gap-4 transition-all hover:scale-[1.05] shadow-2xl shadow-indigo-200">
                              <Plus size={32} />
                              <span className="text-xl font-black">Create New Card</span>
                         </button>
@@ -389,7 +402,7 @@ const UserDashboard = () => {
                             ))}
                         </div>
                         {myCampaigns.length > 3 && (
-                            <Button onClick={() => setActiveTab('my')} variant="ghost" className="mt-8 text-indigo-600 font-black">View All My Frames →</Button>
+                            <Button onClick={() => setActiveTab('my')} variant="ghost" className="mt-8 text-indigo-600 font-black w-full md:w-auto">View All My Frames →</Button>
                         )}
                     </div>
                  </>
@@ -410,7 +423,7 @@ const UserDashboard = () => {
                  <div>
                     <h3 className="text-2xl font-black text-gray-900 mb-8 border-b border-gray-50 pb-4">My Collection ({myCampaigns.length})</h3>
                     {myCampaigns.length === 0 ? (
-                        <div className="py-20 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
+                        <div className="py-20 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200 px-6">
                              <ImageIcon size={40} className="mx-auto text-gray-300 mb-4" />
                              <p className="text-gray-400 font-black">No frames created yet.</p>
                         </div>
@@ -425,6 +438,7 @@ const UserDashboard = () => {
              )}
           </div>
         )}
+        </div>
       </main>
     </div>
   );

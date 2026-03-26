@@ -19,8 +19,8 @@ export const NavbarComponent = () => {
   if (location.pathname.startsWith("/admin")) return null;
 
   return (
-    <Navbar expand="lg" fixed="top" className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm py-2">
-      <Container>
+    <Navbar expand="lg" className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-[2rem] py-2 px-4 z-[1030]">
+      <Container fluid className="px-3">
         <Navbar.Brand as={Link} to="/" className="flex items-center gap-3 group">
           <img 
             src="/logo.png" 
