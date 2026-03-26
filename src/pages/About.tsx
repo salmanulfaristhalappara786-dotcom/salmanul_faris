@@ -1,10 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, Award, BookOpen, Code, Palette } from "lucide-react";
 
 const About = () => {
+  const [activePhoto, setActivePhoto] = useState(0);
+  const [photos, setPhotos] = useState<string[]>(["/_NAS8219.JPG"]);
+
   useEffect(() => {
     document.title = "About Salman Faris | Focal Knot — Designer, Developer & Educator";
+    
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings');
+            const data = await res.json();
+            if (data && data.about_images && data.about_images.length > 0) {
+                setPhotos(data.about_images);
+            }
+        } catch (err) {
+            console.error("About fetch failed", err);
+        }
+    };
+    fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (photos.length <= 1) return;
+    const timer = setInterval(() => {
+      setActivePhoto(prev => (prev + 1) % photos.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [photos]);
 
   return (
     <section className="py-20 lg:py-32 bg-white min-h-screen">
@@ -12,18 +36,41 @@ const About = () => {
         <div className="flex flex-col lg:flex-row items-center gap-16 mb-20">
           <div className="lg:w-1/2 relative group">
             <div className="absolute inset-0 bg-indigo-600 rounded-3xl rotate-3 group-hover:rotate-6 transition-all duration-500 shadow-2xl shadow-indigo-100"></div>
-            <img 
-              src="/_NAS8219.JPG" 
-              alt="Salman Faris" 
-              className="rounded-3xl shadow-2xl w-full h-[600px] object-cover relative z-10 transition-transform duration-500 group-hover:-translate-y-2"
-            />
-          </div>
-          <div className="lg:w-1/2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-sm font-bold uppercase tracking-widest mb-6">
-              <span className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></span>
-              About Salman Faris
+            
+            <div className="relative z-10 aspect-[4/5] lg:aspect-auto lg:h-[600px] overflow-hidden rounded-3xl shadow-2xl">
+                {photos.map((src, i) => (
+                    <img 
+                        key={src}
+                        src={src} 
+                        alt="Salman Faris" 
+                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+                            activePhoto === i ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                        }`}
+                    />
+                ))}
             </div>
-            <h2 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight">
+
+            {photos.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                    {photos.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setActivePhoto(i)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                                activePhoto === i ? 'bg-white w-6' : 'bg-white/40'
+                            }`}
+                        />
+                    ))}
+                </div>
+            )}
+          </div>
+
+          <div className="lg:w-1/2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-6 border border-indigo-100">
+              <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse"></span>
+              Meet the Creator
+            </div>
+            <h2 className="text-5xl font-black text-gray-900 mb-6 leading-tight tracking-tight uppercase">
               Designing the Future, <br />
               <span className="text-indigo-600">One Pixel at a Time.</span>
             </h2>
@@ -62,7 +109,7 @@ const About = () => {
               </div>
             </div>
 
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-5 px-10 rounded-2xl shadow-xl shadow-indigo-100 transition-all flex items-center gap-3 group">
+            <button onClick={() => window.open('https://wa.me/919946941098')} className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-10 rounded-2xl shadow-xl shadow-indigo-100 transition-all flex items-center gap-3 group uppercase tracking-widest text-xs">
               Work with Me <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

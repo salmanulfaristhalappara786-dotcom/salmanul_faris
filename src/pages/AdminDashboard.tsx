@@ -43,17 +43,21 @@ const AdminDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
+  const [siteSettings, setSiteSettings] = useState<{ hero_images: string[], about_images: string[] }>({ hero_images: [], about_images: [] });
+
   const fetchData = useCallback(async () => {
     try {
-      const [cRes, sRes, urRes] = await Promise.all([
+      const [cRes, sRes, urRes, stRes] = await Promise.all([
         fetch('/api/campaigns'),
         fetch('/api/submissions'),
-        fetch('/api/user-requests')
+        fetch('/api/user-requests'),
+        fetch('/api/settings')
       ]);
       
       const campaigns = await cRes.json();
       const subs = await sRes.json();
       const requests = await urRes.json();
+      const settings = await stRes.json();
       
       if (Array.isArray(campaigns)) {
           setAllCampaigns(campaigns);
@@ -65,13 +69,46 @@ const AdminDashboard = () => {
           setStats(prev => ({ ...prev, submissions: subs.length }));
       }
       if (Array.isArray(requests)) setUserRequests(requests);
+      if (settings && !settings.error) setSiteSettings(settings);
 
     } catch (err) {
       console.error("Fetch Data failed", err);
     }
   }, []);
 
+  const handleSiteUpload = async (type: 'hero' | 'about') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const toastId = toast.loading("Uploading to Cloudinary...");
+        try {
+            const url = await uploadToCloudinary(file);
+            if (!url) throw new Error("Upload failed");
+            const updated = { ...siteSettings };
+            if (type === 'hero') updated.hero_images = [...updated.hero_images, url];
+            else updated.about_images = [...updated.about_images, url];
+            
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated)
+            });
+            setSiteSettings(updated);
+            toast.dismiss(toastId);
+            toast.success("Site updated successfully!");
+        } catch (error) {
+            toast.dismiss(toastId);
+            toast.error("Failed to update site assets.");
+        }
+    };
+    input.click();
+  };
+
   useEffect(() => {
+    // ... rest of logic
     if (!authLoading) {
         if (!user || user.role !== 'admin') {
             navigate("/admin/login");
@@ -112,6 +149,7 @@ const AdminDashboard = () => {
                 <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
                 <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>
                 <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>
+                <button onClick={() => setActiveTab("settings")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "settings" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Palette size={20} /> Manage Site</button>
               </>
             )}
             <button onClick={() => setActiveTab("create")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "create" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><ImageIcon size={20} /> Create Frame</button>
@@ -177,6 +215,68 @@ const AdminDashboard = () => {
                     </div>
                 ))}
                 {allCampaigns.length === 0 && <div className="col-span-full py-20 text-center text-gray-400 font-bold uppercase tracking-widest bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">No campaigns found</div>}
+             </div>
+          ) : activeTab === "settings" ? (
+             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white p-10 rounded-[3rem] border border-gray-50 shadow-xl">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-2xl font-black text-gray-900">Home Hero Slider</h3>
+                            <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-1">Main banner images on landing page</p>
+                        </div>
+                        <Button onClick={() => handleSiteUpload('hero')} className="bg-indigo-600 hover:bg-indigo-700 h-14 px-8 rounded-2xl font-black text-xs gap-3 shadow-xl shadow-indigo-100">
+                             <Plus size={20} /> Add Hero Image
+                        </Button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {siteSettings.hero_images.map((img, i) => (
+                            <div key={i} className="aspect-[4/5] bg-gray-50 rounded-3xl overflow-hidden relative group border border-gray-100 shadow-sm">
+                                <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Hero" />
+                                <button 
+                                    onClick={async () => {
+                                        const updated = { ...siteSettings, hero_images: siteSettings.hero_images.filter((_, idx) => idx !== i) };
+                                        await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+                                        setSiteSettings(updated);
+                                        toast.success("Image removed");
+                                    }}
+                                    className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white p-10 rounded-[3rem] border border-gray-50 shadow-xl">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-2xl font-black text-gray-900">About Page Slider</h3>
+                            <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-1">Personal gallery on about section</p>
+                        </div>
+                        <Button onClick={() => handleSiteUpload('about')} className="bg-purple-600 hover:bg-purple-700 h-14 px-8 rounded-2xl font-black text-xs gap-3 shadow-xl shadow-purple-100">
+                             <Plus size={20} /> Add About Image
+                        </Button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {siteSettings.about_images.map((img, i) => (
+                            <div key={i} className="aspect-square bg-gray-50 rounded-3xl overflow-hidden relative group border border-gray-100 shadow-sm">
+                                <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="About" />
+                                <button 
+                                    onClick={async () => {
+                                        const updated = { ...siteSettings, about_images: siteSettings.about_images.filter((_, idx) => idx !== i) };
+                                        await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+                                        setSiteSettings(updated);
+                                        toast.success("Image removed");
+                                    }}
+                                    className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
              </div>
           ) : activeTab === "users" ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

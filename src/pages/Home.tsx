@@ -5,20 +5,34 @@ import { ChevronRight, ArrowRight, Sparkles, Image as ImageIcon, UserCircle, Set
 
 const Home = () => {
   const [activePhoto, setActivePhoto] = useState(0);
-
-  const photos = ["/_NAS8219.JPG", "/DSC01910.JPG"];
+  const [photos, setPhotos] = useState<string[]>(["/_NAS8219.JPG", "/DSC01910.JPG"]);
 
   useEffect(() => {
     document.title = "Salmanul Faris — Creative Designer, Developer & Educator";
+    
+    // Fetch dynamic hero images
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings');
+            const data = await res.json();
+            if (data && data.hero_images && data.hero_images.length > 0) {
+                setPhotos(data.hero_images);
+            }
+        } catch (err) {
+            console.error("Hero fetch failed", err);
+        }
+    };
+    fetchSettings();
   }, []);
 
   // Auto-cycle photos
   useEffect(() => {
+    if (photos.length === 0) return;
     const timer = setInterval(() => {
       setActivePhoto(prev => (prev + 1) % photos.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [photos]);
 
   return (
     <main className="bg-[#FDFEFF]">
@@ -48,8 +62,8 @@ const Home = () => {
             
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
               <Link to="/campaigns">
-                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-indigo-200 transition-all hover:scale-105 flex items-center gap-3 group">
-                  Active Campaign <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-indigo-100 transition-all hover:scale-105 flex items-center gap-3 group">
+                   Explore Campaigns <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/about">
@@ -63,7 +77,6 @@ const Home = () => {
           
           {/* Hero Image Gallery */}
           <div className="lg:w-2/5 relative">
-            {/* Main image card */}
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 rounded-[3rem] blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-700"></div>
               <div className="relative bg-white p-3 rounded-[3rem] shadow-2xl border border-gray-100 transition-transform duration-700 group-hover:-translate-y-3">
@@ -79,7 +92,6 @@ const Home = () => {
                   />
                 ))}
 
-                {/* Photo dots indicator */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
                   {photos.map((_, i) => (
                     <button
@@ -95,22 +107,20 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Floating card */}
-              <div className="absolute -bottom-8 -left-8 bg-white px-7 py-6 rounded-3xl shadow-2xl border border-gray-50 z-10">
+              <div className="absolute -bottom-8 -left-8 bg-white px-7 py-6 rounded-3xl shadow-2xl border border-gray-100 z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0">
                     <ChevronRight className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-base leading-tight">Next Campaign</h4>
-                    <p className="text-gray-400 font-medium text-xs mt-0.5">Launching Soon 2026</p>
+                    <h4 className="font-bold text-gray-900 text-base leading-tight">Next Project</h4>
+                    <p className="text-gray-400 font-medium text-[10px] uppercase tracking-widest mt-0.5">Live Now</p>
                   </div>
                 </div>
               </div>
 
-              {/* Top-right badge */}
-              <div className="absolute -top-5 -right-5 bg-gradient-to-br from-indigo-600 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-2xl shadow-xl shadow-indigo-200 z-10">
-                ✦ Live Work
+              <div className="absolute -top-5 -right-5 bg-gradient-to-br from-indigo-600 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-2xl shadow-xl shadow-indigo-100 z-10">
+                ✦ Official Studio
               </div>
             </div>
           </div>
@@ -125,12 +135,11 @@ const Home = () => {
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-6">Explore <span className="text-indigo-600">Salmanul Faris</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-6 uppercase">Explore <span className="text-indigo-600">Salmanul Faris</span></h2>
             <p className="text-lg text-gray-500 font-medium">Discover the different sections of our platform designed to help you engage, create, and manage campaigns effortlessly.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            
             {/* Campaigns Intro */}
             <div className="bg-gray-50/50 p-10 rounded-[2.5rem] border border-gray-100 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-100/30 transition-all duration-500 group">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-gray-50 mb-8 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
@@ -158,7 +167,6 @@ const Home = () => {
                 Read the Story <ChevronRight size={18} />
               </Link>
             </div>
-
           </div>
         </div>
       </section>
