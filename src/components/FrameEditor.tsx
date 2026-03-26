@@ -170,7 +170,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                     <input type="file" className="hidden" onChange={handleFrameUpload} accept="image/*" />
                 </label>
              ) : (
-                <div id="editor-container" className="relative bg-white shadow-2xl overflow-hidden rounded-[2rem] border border-gray-100 mx-auto" style={{ width: `${editorDimensions.width}px`, height: `${editorDimensions.height}px` }}>
+                <div id="editor-container" className="relative bg-white shadow-2xl overflow-hidden rounded-[2rem] mx-auto" style={{ width: `${editorDimensions.width}px`, height: `${editorDimensions.height}px` }}>
                     <img src={frameUrl} className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0" alt="Frame" />
                     {placeholders.map((p) => (
                         <Rnd
