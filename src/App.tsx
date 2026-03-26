@@ -20,6 +20,8 @@ import UserDashboard from "./pages/UserDashboard";
 import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+import { Container as BootstrapContainer } from "react-bootstrap";
+
 const queryClient = new QueryClient();
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -29,8 +31,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow pt-16">
-        {children}
+      <main className="flex-grow pt-16 mt-3">
+        {isDashboard ? children : (
+          <BootstrapContainer fluid="md">
+            {children}
+          </BootstrapContainer>
+        )}
       </main>
       {!isDashboard && <Footer />}
     </div>
