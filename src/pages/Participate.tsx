@@ -81,7 +81,7 @@ const Participate = () => {
         canvas.width = frameImg.width;
         canvas.height = frameImg.height;
         const sx = frameImg.width / 500;
-        const sy = frameImg.height / 500;
+        const sy = sx; // Fix: Use same scaling for both to maintain ratio consistent with editor
 
         // Draw images first
         for (const p of imagePlaceholders) {
