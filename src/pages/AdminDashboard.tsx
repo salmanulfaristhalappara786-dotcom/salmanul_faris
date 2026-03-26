@@ -214,7 +214,13 @@ const AdminDashboard = () => {
                         </div>
                         <div className="p-8">
                             <h4 className="text-xl font-black text-gray-900 mb-2 truncate">{camp.title}</h4>
-                            <p className="text-gray-400 text-xs font-bold mb-6 truncate">URL: /{camp.slug}</p>
+                            <div className="flex items-center justify-between mb-6">
+                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest leading-none">URL: /{camp.slug}</p>
+                                <div className="flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1.5 rounded-xl text-indigo-600">
+                                    <UserCheck size={14} className="mb-0.5" />
+                                    <span className="text-[10px] font-black">{submissions.filter(s => s.campaign_id === camp._id).length} Users</span>
+                                </div>
+                            </div>
                             <div className="flex gap-2">
                                 <Button onClick={() => { setEditId(camp._id); setCampaignTitle(camp.title); setFrameImage(camp.frame_url); setPlaceholders(camp.placeholders || []); setActiveTab("create"); }} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 h-12 rounded-xl text-[10px] font-black uppercase">Edit Frame</Button>
                                 <Button onClick={async () => { if(confirm("Delete this campaign?")) { await fetch(`/api/campaigns?id=${camp._id}`, { method: 'DELETE', headers: { 'x-requester-id': user!.id, 'x-requester-role': user!.role || 'user' } }); toast.success("Campaign Deleted"); fetchData(); } }} variant="outline" className="h-12 w-12 rounded-xl text-red-500 border-gray-50 flex items-center justify-center"><Trash2 size={18} /></Button>
