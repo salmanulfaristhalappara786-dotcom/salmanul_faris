@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -6,6 +7,15 @@ import { Navbar, Nav, Container } from "react-bootstrap";
 export const NavbarComponent = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -19,7 +29,14 @@ export const NavbarComponent = () => {
   if (location.pathname.startsWith("/admin")) return null;
 
   return (
-    <Navbar expand="lg" className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-[2rem] py-2 px-4 z-[1030]">
+    <Navbar 
+      expand="lg" 
+      className={`fixed left-1/2 -translate-x-1/2 z-[1030] transition-all duration-500 ease-out border ${
+        isScrolled
+          ? "top-4 w-[90%] md:w-[70%] max-w-4xl bg-white/95 backdrop-blur-2xl shadow-2xl shadow-indigo-500/10 border-gray-200 rounded-[2.5rem] py-2 px-4"
+          : "top-6 w-[95%] max-w-7xl bg-white/60 backdrop-blur-md shadow-sm border-white/40 rounded-3xl py-4 px-6"
+      }`}
+    >
       <Container fluid className="px-3">
         <Navbar.Brand as={Link} to="/" className="flex items-center gap-3 group">
           <img 
