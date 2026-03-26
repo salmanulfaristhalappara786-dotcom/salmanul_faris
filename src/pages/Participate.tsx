@@ -19,7 +19,6 @@ const Participate = () => {
   const [userData, setUserData] = useState<Record<string, string>>({});
   const [finalPreview, setFinalPreview] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchCampaign = async () => {
@@ -81,74 +80,73 @@ const Participate = () => {
         canvas.width = frameImg.width;
         canvas.height = frameImg.height;
         const sx = frameImg.width / 500;
-        const sy = sx; // Fix: Use same scaling for both to maintain ratio consistent with editor
 
-        // Draw images first
+        // Draw Images with Percentage Scaling
         for (const p of imagePlaceholders) {
-          if (placeholderData[p.id]?.image && placeholderData[p.id]?.pixels) {
-            ctx.save();
-            const scaledX = p.x * sx;
-            const scaledY = p.y * sy;
-            const scaledWidth = p.width * sx;
-            const scaledHeight = p.height * sy;
-            const scaledRadius = (p.borderRadius || 0) * sx;
-
-            if (p.type === 'circle') {
-              ctx.beginPath();
-              ctx.arc(scaledX + scaledWidth/2, scaledY + scaledHeight/2, scaledWidth/2, 0, Math.PI * 2);
-              ctx.clip();
-            } else if (p.type === 'rectangle' && scaledRadius > 1) {
-              ctx.beginPath();
-              ctx.moveTo(scaledX + scaledRadius, scaledY);
-              ctx.lineTo(scaledX + scaledWidth - scaledRadius, scaledY);
-              ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY, scaledX + scaledWidth, scaledY + scaledRadius);
-              ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight - scaledRadius);
-              ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY + scaledHeight, scaledX + scaledWidth - scaledRadius, scaledY + scaledHeight);
-              ctx.lineTo(scaledX + scaledRadius, scaledY + scaledHeight);
-              ctx.quadraticCurveTo(scaledX, scaledY + scaledHeight, scaledX, scaledY + scaledHeight - scaledRadius);
-              ctx.lineTo(scaledX, scaledY + scaledRadius);
-              ctx.quadraticCurveTo(scaledX, scaledY, scaledX + scaledRadius, scaledY);
-              ctx.closePath();
-              ctx.clip();
-            }
-
             const data = placeholderData[p.id];
+            if (!data || !data.pixels) continue;
+            
             const userImg = new Image();
             userImg.src = data.image as string;
             await new Promise(resolve => userImg.onload = resolve);
+
+            // CALCULATE POSITION USING PERCENTAGE (ROBUST) OR FALLBACK
+            const scaledX = p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx;
+            const scaledY = p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx;
+            const scaledWidth = p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx;
+            const scaledHeight = p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx;
+
+            ctx.save();
+            if (p.type === 'circle') {
+                ctx.beginPath();
+                ctx.arc(scaledX + scaledWidth/2, scaledY + scaledHeight/2, scaledWidth/2, 0, Math.PI * 2);
+                ctx.clip();
+            } else if (p.borderRadius) {
+                const r = (p.borderRadius / (p.width || 100)) * scaledWidth;
+                ctx.beginPath();
+                ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight, r);
+                ctx.clip();
+            }
+            
             ctx.drawImage(userImg, data.pixels.x, data.pixels.y, data.pixels.width, data.pixels.height, scaledX, scaledY, scaledWidth, scaledHeight);
             ctx.restore();
-          }
         }
 
-        ctx.drawImage(frameImg, 0, 0);
+        // Draw Frame Overlay
+        ctx.drawImage(frameImg, 0, 0, frameImg.width, frameImg.height);
 
-        // Text
-        placeholders.forEach((p: any) => {
-          if (p.type === 'text') {
-            const value = userData[p.id] || "";
-            const fSize = p.fontSize || 30;
-            const tAlign = p.textAlign || "center";
-            const fFamily = p.fontFamily || 'sans-serif';
-            const fWeight = p.fontWeight || 'bold';
-            
-            ctx.font = `${fWeight} ${fSize * sx}px "${fFamily}"`;
-            ctx.fillStyle = p.color || "white";
-            ctx.textAlign = tAlign as CanvasTextAlign;
-            ctx.textBaseline = 'top';
-            
-            let textX = (p.x + p.width/2) * sx;
-            if (tAlign === 'left') textX = p.x * sx;
-            if (tAlign === 'right') textX = (p.x + p.width) * sx;
+        // Draw Names (Text)
+        for (const p of placeholders) {
+            if (p.type === 'text') {
+                const value = userData[p.id] || "";
+                if (!value) continue;
 
-            ctx.fillText(value, textX, p.y * sy);
-          }
-        });
+                const scaledX = p.x_pct !== undefined ? p.x_pct * frameImg.width : p.x * sx;
+                const scaledY = p.y_pct !== undefined ? p.y_pct * frameImg.height : p.y * sx;
+                const scaledWidth = p.w_pct !== undefined ? p.w_pct * frameImg.width : p.width * sx;
+                const scaledHeight = p.h_pct !== undefined ? p.h_pct * frameImg.height : p.height * sx;
+
+                const fontSize = (p.fontSize || 24) * sx;
+                const textAlign = p.textAlign || 'center';
+                const fontFamily = p.fontFamily || 'Arial';
+
+                ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                ctx.fillStyle = p.color || "#000000";
+                ctx.textAlign = textAlign as CanvasTextAlign;
+                ctx.textBaseline = 'middle';
+
+                let targetX = scaledX + scaledWidth / 2;
+                if (textAlign === 'left') targetX = scaledX;
+                if (textAlign === 'right') targetX = scaledX + scaledWidth;
+
+                ctx.fillText(value, targetX, scaledY + scaledHeight / 2);
+            }
+        }
 
         const result = canvas.toDataURL("image/png", 1.0);
         setFinalPreview(result);
         
-        // Auto-save submission
+        // Background upload for submissions
         const blob = await (await fetch(result)).blob();
         const publicUrl = await uploadToCloudinary(blob);
         if (publicUrl) {
@@ -164,6 +162,7 @@ const Participate = () => {
         }
     } catch (err) {
         toast.error("Generation failed.");
+        console.error(err);
     } finally {
         setIsGenerating(false);
     }
@@ -181,23 +180,17 @@ const Participate = () => {
   if (loading) return <div className="min-h-screen bg-[#60A5FA] flex items-center justify-center"><Loader2 className="w-12 h-12 text-white animate-spin" /></div>;
   if (!campaign) return <div className="min-h-screen bg-[#60A5FA] flex items-center justify-center text-white font-bold text-2xl">Campaign Not Found</div>;
 
-  const placeholders = Array.isArray(campaign.placeholders) ? campaign.placeholders : [];
-
   return (
     <div className="min-h-screen bg-[#60A5FA] pb-12 pt-16">
       <div className="max-w-md mx-auto px-4 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between text-white mb-8">
             <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ChevronLeft size={28} /></button>
-            <h1 className="text-xl font-black uppercase tracking-tight">{campaign.title}</h1>
+            <h1 className="text-xl font-black uppercase tracking-tight truncate max-w-[200px]">{campaign.title}</h1>
             <div className="w-10"></div>
         </div>
 
-        {/* User Experience Container */}
         <div className="bg-white/10 backdrop-blur-3xl rounded-[3rem] border border-white/20 p-6 shadow-2xl space-y-8">
-            
-            {/* 1. PREVIEW PANEL */}
-            <div className="relative aspect-square bg-black/40 rounded-[2.5rem] overflow-hidden border border-white/30 shadow-inner group">
+            <div className="relative aspect-square bg-black/40 rounded-[2.5rem] overflow-hidden border border-white/30 shadow-inner">
                 {finalPreview ? (
                     <img src={finalPreview} alt="Result" className="w-full h-full object-contain animate-in zoom-in-95 duration-500" />
                 ) : (
@@ -212,16 +205,15 @@ const Participate = () => {
                 {isGenerating && (
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center z-50 rounded-[2.5rem]">
                         <Loader2 className="w-12 h-12 text-blue-400 animate-spin mb-4" />
-                        <span className="text-white font-bold text-xs uppercase tracking-widest">Generating Your Art...</span>
+                        <span className="text-white font-bold text-xs uppercase tracking-widest">Processing...</span>
                     </div>
                 )}
             </div>
 
-            {/* 2. ACTIONS PANEL */}
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl space-y-6">
                 {!finalPreview ? (
                     <>
-                        {placeholders.map((p: any) => (p.type === 'rectangle' || p.type === 'circle') && (
+                        {campaign.placeholders?.map((p: any) => (p.type === 'rectangle' || p.type === 'circle') && (
                             <div key={p.id} className="space-y-4">
                                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest text-center">{p.label || "Step 1: Upload Your Photo"}</p>
                                 {!placeholderData[p.id]?.image ? (
@@ -254,7 +246,7 @@ const Participate = () => {
                             </div>
                         ))}
 
-                        {placeholders.map((p: any) => p.type === 'text' && (
+                        {campaign.placeholders?.map((p: any) => p.type === 'text' && (
                             <div key={p.id} className="space-y-2">
                                 <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1">{p.label || "Enter Your Name"}</label>
                                 <div className="relative">
@@ -303,8 +295,6 @@ const Participate = () => {
                 )}
             </div>
         </div>
-        
-        {/* Footer */}
         <p className="text-center text-white/40 text-[9px] font-black uppercase tracking-[0.3em]">Powered by Focal Knot Creative Studio</p>
       </div>
     </div>

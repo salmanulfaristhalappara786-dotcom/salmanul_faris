@@ -144,7 +144,13 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
             description: newCampaignData.description,
             slug: newCampaignData.slug,
             frame_url: publicUrl,
-            placeholders,
+            placeholders: placeholders.map(p => ({
+                ...p,
+                x_pct: p.x / editorWidth,
+                y_pct: p.y / editorHeight,
+                w_pct: p.width / editorWidth,
+                h_pct: p.height / editorHeight
+            })),
             status: 'active',
             owner_id: user?.id
         })
