@@ -281,7 +281,9 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                 textAlign: p.textAlign,
                                 fontWeight: p.fontWeight === 'bold' ? 'bold' : 'normal',
                                 fontStyle: p.italic ? 'italic' : 'normal',
-                                textDecoration: p.underline ? 'underline' : 'none'
+                                textDecoration: p.underline ? 'underline' : 'none',
+                                fontFamily: p.fontFamily || 'Arial',
+                                lineHeight: p.lineHeight || 1.4,
                              }}>
                                 {p.previewText || p.label}
                             </div>
