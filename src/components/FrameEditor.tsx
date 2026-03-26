@@ -107,14 +107,19 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
         return;
     }
 
-    const loadingToastId = toast.loading(editId ? "Updating frame..." : "Publishing frame...");
+    const loadingToastId = toast.loading(editId ? "Updating frame..." : "Uploading & publishing frame...");
     try {
       let publicUrl = frameUrl;
       if (frameUrl.startsWith('data:')) {
+          toast.loading("Uploading image to cloud...", { id: loadingToastId });
           const res = await fetch(frameUrl);
           const blob = await res.blob();
-          publicUrl = await uploadToCloudinary(blob) || "";
+          const uploaded = await uploadToCloudinary(blob);
+          if (!uploaded) throw new Error("Image upload to Cloudinary failed. Check your env variables.");
+          publicUrl = uploaded;
       }
+
+      if (!publicUrl) throw new Error("No frame image. Please upload a frame first.");
 
       const method = editId ? 'PUT' : 'POST';
       const url = editId ? `/api/campaigns?id=${editId}` : '/api/campaigns';
@@ -124,7 +129,8 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
         method,
         headers: { 
             'Content-Type': 'application/json',
-            'x-requester-id': user?.id || ''
+            'x-requester-id': user?.id || '',
+            'x-requester-role': user?.role || 'user'
         },
         body: JSON.stringify({
             title: newCampaignData.title,

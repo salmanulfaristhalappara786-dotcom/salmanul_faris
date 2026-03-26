@@ -51,11 +51,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     case 'PUT':
     case 'PATCH':
       try {
+        if (!id) return res.status(400).json({ success: false, error: "Missing id" });
         const campaign = await Campaign.findById(id);
         if (!campaign) return res.status(404).json({ success: false, error: "Campaign not found" });
         
-        if (!isAdmin && campaign.owner_id !== requesterId) {
-            return res.status(403).json({ success: false, error: "Not authorized to update this campaign" });
+        // Allow if admin OR owner
+        if (!isAdmin && campaign.owner_id && campaign.owner_id !== requesterId) {
+            return res.status(403).json({ success: false, error: "Not authorized" });
         }
 
         const updated = await Campaign.findByIdAndUpdate(id, req.body, { new: true });
@@ -67,11 +69,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     case 'DELETE':
         try {
+          if (!id) return res.status(400).json({ success: false, error: "Missing id" });
           const campaign = await Campaign.findById(id);
           if (!campaign) return res.status(404).json({ success: false, error: "Campaign not found" });
 
-          if (!isAdmin && campaign.owner_id !== requesterId) {
-              return res.status(403).json({ success: false, error: "Not authorized to delete this campaign" });
+          // Allow if admin OR owner
+          if (!isAdmin && campaign.owner_id && campaign.owner_id !== requesterId) {
+              return res.status(403).json({ success: false, error: "Not authorized to delete" });
           }
 
           await Campaign.findByIdAndDelete(id);
