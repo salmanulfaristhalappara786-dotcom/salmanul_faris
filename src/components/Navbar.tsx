@@ -44,7 +44,7 @@ export const NavbarComponent = () => {
             alt="Salmanul Faris Logo" 
             className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" 
           />
-          <span className="text-xl font-black text-gray-900 tracking-tighter hidden sm:inline uppercase">
+          <span className="text-xl font-black text-gray-900 tracking-tighter hidden sm:inline uppercase whitespace-nowrap">
             Salmanul Faris<span className="text-indigo-600">.</span>
           </span>
         </Navbar.Brand>
@@ -58,7 +58,7 @@ export const NavbarComponent = () => {
                 key={link.to}
                 as={Link}
                 to={link.to}
-                className={`mx-lg-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mb-2 mb-lg-0 ${
+                className={`mx-lg-1 whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mb-2 mb-lg-0 ${
                   location.pathname === link.to
                     ? "text-indigo-700 bg-indigo-50"
                     : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
