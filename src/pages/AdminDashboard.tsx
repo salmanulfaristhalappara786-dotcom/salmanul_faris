@@ -132,6 +132,7 @@ const AdminDashboard = () => {
         <div className="p-12">
           {activeTab === "create" ? (
              <FrameEditor 
+                key={editId || 'new'}
                 editId={editId}
                 initialData={editId ? {
                     title: campaignTitle,
