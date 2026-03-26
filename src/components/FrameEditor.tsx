@@ -161,11 +161,43 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
     }
   };
 
+  const [customFonts, setCustomFonts] = useState<{ name: string, url: string }[]>([]);
+  const fontInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const toastId = toast.loading("Uploading font...");
+    try {
+      const url = await uploadToCloudinary(file);
+      if (!url) throw new Error("Upload failed");
+
+      // Extract font name from filename
+      const fontName = file.name.split('.')[0].replace(/[^a-zA-Z]/g, '');
+      
+      // Load font into browser
+      const font = new FontFace(fontName, `url(${url})`);
+      await font.load();
+      document.fonts.add(font);
+
+      setCustomFonts(prev => [...prev, { name: fontName, url }]);
+      toast.dismiss(toastId);
+      toast.success(`Font "${fontName}" added!`);
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Failed to upload font.");
+    }
+  };
+
   const selectedPlaceholder = placeholders.find(p => p.id === selectedId);
 
   return (
     <div className="bg-white rounded-[3.5rem] shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[800px]">
-      {/* Canvas Area */}
+      {/* Hidden inputs */}
+      <input type="file" ref={fontInputRef} className="hidden" accept=".ttf,.otf,.woff,.woff2" onChange={handleFontUpload} />
+      
+      {/* ... (rest of the component) */}
       <div className="flex-1 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-50">
          <div className="absolute top-8 left-8 flex items-center gap-4">
            <Button onClick={onCancel} variant="ghost" className="rounded-2xl text-gray-400 hover:text-gray-900 font-bold h-12 gap-2"><X size={20} /> Exit Studio</Button>
@@ -261,11 +293,18 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                             <div className="grid grid-cols-6 gap-3 pt-2">
                                 <div className="col-span-3 space-y-1">
                                     <label className="text-[10px] font-bold text-gray-500 ml-1">Font</label>
-                                    <select className="w-full bg-gray-50 rounded-xl px-4 py-3 font-bold text-sm appearance-none outline-none focus:ring-4 focus:ring-indigo-100 border-none transition-all cursor-pointer">
-                                        <option>Arial</option>
-                                        <option>Inter</option>
-                                        <option>Poppins</option>
-                                        <option>Malayalam</option>
+                                    <select 
+                                        value={selectedPlaceholder.fontFamily} 
+                                        onChange={e => updatePlaceholder(selectedId!, {fontFamily: e.target.value})}
+                                        className="w-full bg-gray-50 rounded-xl px-4 py-3 font-bold text-sm appearance-none outline-none focus:ring-4 focus:ring-indigo-100 border-none transition-all cursor-pointer"
+                                    >
+                                        <option value="Arial">Arial</option>
+                                        <option value="Inter">Inter</option>
+                                        <option value="Poppins">Poppins</option>
+                                        <option value="Malayalam">Malayalam</option>
+                                        {customFonts.map(f => (
+                                            <option key={f.url} value={f.name}>{f.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="col-span-1 space-y-1">
@@ -340,7 +379,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
 
             {/* Global Actions */}
             <div className="space-y-6 pt-6">
-                <Button onClick={() => toast.info("Custom font upload coming soon!")} variant="outline" className="w-full h-14 rounded-2xl border-2 border-gray-100 text-gray-500 font-bold flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
+                <Button onClick={() => fontInputRef.current?.click()} variant="outline" className="w-full h-14 rounded-2xl border-2 border-gray-100 text-gray-500 font-bold flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
                     <Upload size={20} /> Add Font
                 </Button>
 
