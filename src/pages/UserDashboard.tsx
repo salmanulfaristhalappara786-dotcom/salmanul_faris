@@ -124,6 +124,36 @@ const UserDashboard = () => {
     }
   }, [user, authLoading, navigate, fetchProfileAndData]);
 
+  const handleRequestAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      setLoading(true);
+      const res = await fetch('/api/user-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          username: formData.username,
+          gmail: user.email,
+          phone: formData.phone,
+          status: 'pending'
+        })
+      });
+      const data = await res.json();
+      if (data && !data.error) {
+        toast.success("Request sent! Waiting for admin approval.");
+        setProfileRequest(data);
+      } else {
+        toast.error("Failed to send request.");
+      }
+    } catch (err) {
+      toast.error("Error sending request.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this frame?")) return;
     try {
@@ -164,6 +194,88 @@ const UserDashboard = () => {
     );
   }
 
+  // RESTRICED ACCESS VIEW: If not approved
+  if (!profileRequest || profileRequest.status !== 'approved') {
+    return (
+      <div className="min-h-screen bg-[#FDFEFF] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-50 text-center relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
+             
+             {!profileRequest ? (
+               <>
+                 <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600 mx-auto mb-8 shadow-xl shadow-indigo-50">
+                   <Palette size={40} />
+                 </div>
+                 <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Studio Access</h2>
+                 <p className="text-gray-500 font-medium mb-10 leading-relaxed text-sm">
+                   Join the Focal Knot creator network. Complete your profile to request access to the Design Studio.
+                 </p>
+                 
+                 <form onSubmit={handleRequestAccess} className="space-y-5 text-left">
+                    <div className="space-y-1.5">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Preferred Username</label>
+                       <div className="relative">
+                          <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input 
+                            required 
+                            type="text" 
+                            placeholder="creative_mind"
+                            className="w-full h-14 bg-gray-50 border-none rounded-2xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                            value={formData.username}
+                            onChange={e => setFormData(p => ({ ...p, username: e.target.value }))}
+                          />
+                       </div>
+                    </div>
+                    <div className="space-y-1.5">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">WhatsApp / Phone</label>
+                       <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input 
+                            required 
+                            type="tel" 
+                            placeholder="+91 0000 000 000"
+                            className="w-full h-14 bg-gray-50 border-none rounded-2xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                            value={formData.phone}
+                            onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                          />
+                       </div>
+                    </div>
+                    <Button type="submit" className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 rounded-2xl text-white font-black text-lg shadow-xl shadow-indigo-100 mt-4 transition-all hover:scale-[1.02]">
+                       Request Access
+                    </Button>
+                 </form>
+               </>
+             ) : profileRequest.status === 'pending' ? (
+               <>
+                 <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-500 mx-auto mb-8 shadow-xl shadow-amber-50">
+                   <Clock size={40} className="animate-pulse" />
+                 </div>
+                 <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">Request Pending</h2>
+                 <p className="text-gray-500 font-medium mb-8 leading-relaxed text-sm">
+                   Your profile is currently under review by our administrators. You will be notified once access is granted.
+                 </p>
+                 <div className="p-5 bg-amber-50 rounded-2xl text-amber-700 text-xs font-bold border border-amber-100">
+                    Expected Review Time: 24 - 48 Hours
+                 </div>
+                 <Button onClick={logout} variant="ghost" className="mt-10 text-gray-400 font-black hover:text-red-500">Logout</Button>
+               </>
+             ) : (
+               <>
+                 <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center text-red-500 mx-auto mb-8 shadow-xl shadow-red-50">
+                   <XCircle size={40} />
+                 </div>
+                 <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">Request Rejected</h2>
+                 <p className="text-gray-500 font-medium mb-10 leading-relaxed text-sm">
+                   Unfortunately, your access request could not be approved at this time. Please contact support for more details.
+                 </p>
+                 <Button onClick={logout} className="w-full h-16 bg-gray-900 hover:bg-black rounded-2xl text-white font-black">Back to Home</Button>
+               </>
+             )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FDFEFF] flex">
       <aside className="w-80 bg-white border-r border-gray-50 flex flex-col p-10 pt-16">
@@ -174,8 +286,8 @@ const UserDashboard = () => {
             </div>
             <div>
               <h3 className="font-black text-gray-900 leading-tight">@{profileRequest?.username}</h3>
-              <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                <ShieldCheck size={10} /> Verified Creator
+              <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                <ShieldCheck size={10} /> Authorized Creator
               </p>
             </div>
           </div>
@@ -188,8 +300,11 @@ const UserDashboard = () => {
             <SidebarBtn label="MY FRAMES" active={activeTab === 'my'} onClick={() => { setActiveTab('my'); setIsEditing(false); }} />
         </nav>
 
-        <div className="mt-auto pt-10 border-t border-gray-50">
-          <Button onClick={() => { logout(); navigate("/"); }} variant="ghost" className="w-full h-16 rounded-2xl text-red-500 hover:bg-red-50 font-black gap-2 transition-all">
+        <div className="mt-auto pt-10 border-t border-gray-50 flex flex-col gap-4">
+          <Button onClick={() => navigate("/")} variant="ghost" className="w-full h-14 rounded-xl text-gray-600 font-black gap-2">
+             Home Page
+          </Button>
+          <Button onClick={() => { logout(); navigate("/"); }} variant="ghost" className="w-full h-14 rounded-xl text-red-500 hover:bg-red-50 font-black gap-2 transition-all">
             <LogOut size={20} /> Logout
           </Button>
         </div>
@@ -217,10 +332,10 @@ const UserDashboard = () => {
                 }}
             />
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-12 animate-in fade-in duration-700">
              <header className="flex flex-col gap-2">
-                <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
-                <p className="text-gray-400 font-bold">Managed by you.</p>
+                <h2 className="text-4xl font-black text-gray-900 tracking-tight uppercase">Studio <span className="text-indigo-600">Dashboard</span></h2>
+                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">Digital Content Management</p>
              </header>
 
              {activeTab === 'overview' && (
@@ -247,7 +362,7 @@ const UserDashboard = () => {
                     <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl border border-gray-50 flex items-center justify-between group overflow-hidden relative">
                         <div>
                             <h3 className="text-3xl font-black text-gray-800">Start New Project</h3>
-                            <p className="text-gray-400 font-bold mt-1">Create a fresh card design.</p>
+                            <p className="text-gray-400 font-bold mt-1 uppercase text-xs tracking-widest">Create a fresh card design.</p>
                         </div>
                         <button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-24 px-12 rounded-[2rem] text-white flex items-center gap-4 transition-all hover:scale-[1.05] shadow-2xl shadow-indigo-200">
                              <Plus size={32} />
