@@ -164,29 +164,68 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
   const [customFonts, setCustomFonts] = useState<{ name: string, url: string }[]>([]);
   const fontInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const toastId = toast.loading("Uploading font...");
+  const loadFont = useCallback(async (name: string, url: string) => {
     try {
-      const url = await uploadToCloudinary(file);
-      if (!url) throw new Error("Upload failed");
-
-      // Extract font name from filename
-      const fontName = file.name.split('.')[0].replace(/[^a-zA-Z]/g, '');
-      
-      // Load font into browser
-      const font = new FontFace(fontName, `url(${url})`);
+      if (document.fonts.check(`1em ${name}`)) return;
+      const font = new FontFace(name, `url(${url})`);
       await font.load();
       document.fonts.add(font);
+    } catch (e) {
+      console.error(`Error loading font ${name}:`, e);
+    }
+  }, []);
 
-      setCustomFonts(prev => [...prev, { name: fontName, url }]);
+  useEffect(() => {
+    const fetchFonts = async () => {
+      try {
+        const res = await fetch('/api/fonts');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setCustomFonts(data);
+          data.forEach(f => loadFont(f.name, f.url));
+        }
+      } catch (err) {
+        console.error("Failed to fetch fonts", err);
+      }
+    };
+    fetchFonts();
+  }, [loadFont]);
+
+  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const toastId = toast.loading(`Uploading ${files.length} font(s)...`);
+    try {
+      const newFonts = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const url = await uploadToCloudinary(file);
+        if (!url) continue;
+
+        const fontName = file.name.split('.')[0].replace(/[^a-zA-Z]/g, '');
+        
+        // Save to DB
+        const res = await fetch('/api/fonts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fontName, url })
+        });
+        const saved = await res.json();
+
+        if (saved && !saved.error) {
+            await loadFont(fontName, url);
+            newFonts.push(saved);
+        }
+      }
+
+      setCustomFonts(prev => [...prev, ...newFonts]);
       toast.dismiss(toastId);
-      toast.success(`Font "${fontName}" added!`);
+      toast.success(`${newFonts.length} font(s) added successfully!`);
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("Failed to upload font.");
+      toast.error("Failed to upload fonts.");
+      console.error(error);
     }
   };
 
@@ -195,7 +234,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
   return (
     <div className="bg-white rounded-[3.5rem] shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[800px]">
       {/* Hidden inputs */}
-      <input type="file" ref={fontInputRef} className="hidden" accept=".ttf,.otf,.woff,.woff2" onChange={handleFontUpload} />
+      <input type="file" ref={fontInputRef} className="hidden" accept=".ttf,.otf,.woff,.woff2" onChange={handleFontUpload} multiple />
       
       {/* ... (rest of the component) */}
       <div className="flex-1 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-50">

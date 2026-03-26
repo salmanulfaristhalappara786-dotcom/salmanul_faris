@@ -20,7 +20,31 @@ const Participate = () => {
   const [finalPreview, setFinalPreview] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const loadFont = useCallback(async (name: string, url: string) => {
+    try {
+      if (document.fonts.check(`1em ${name}`)) return;
+      const font = new FontFace(name, `url(${url})`);
+      await font.load();
+      document.fonts.add(font);
+    } catch (e) {
+      console.error(`Error loading font ${name}:`, e);
+    }
+  }, []);
+
   useEffect(() => {
+    const fetchFonts = async () => {
+      try {
+        const res = await fetch('/api/fonts');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          data.forEach(f => loadFont(f.name, f.url));
+        }
+      } catch (err) {
+        console.error("Failed to fetch fonts", err);
+      }
+    };
+    fetchFonts();
+
     const fetchCampaign = async () => {
       try {
         const res = await fetch(`/api/campaigns?slug=${id}`);

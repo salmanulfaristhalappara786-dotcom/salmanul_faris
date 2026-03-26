@@ -38,7 +38,14 @@ const UserRequestSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+const FontSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  url: { type: String, required: true },
+  created_at: { type: Date, default: Date.now },
+});
+
 export const User = mongoose.models.User || mongoose.model('User', UserSchema);
 export const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
 export const Submission = mongoose.models.Submission || mongoose.model('Submission', SubmissionSchema);
 export const UserRequest = mongoose.models.UserRequest || mongoose.model('UserRequest', UserRequestSchema);
+export const Font = mongoose.models.Font || mongoose.model('Font', FontSchema);
