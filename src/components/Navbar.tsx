@@ -33,8 +33,8 @@ export const NavbarComponent = () => {
       expand="lg" 
       className={`fixed left-1/2 -translate-x-1/2 z-[1030] transition-all duration-500 ease-out border ${
         isScrolled
-          ? "top-4 w-[90%] md:w-[70%] max-w-4xl bg-white/95 backdrop-blur-2xl shadow-2xl shadow-indigo-500/10 border-gray-200 rounded-[2.5rem] py-2 px-4"
-          : "top-6 w-[95%] max-w-7xl bg-white/60 backdrop-blur-md shadow-sm border-white/40 rounded-3xl py-4 px-6"
+          ? "top-4 w-[90%] max-w-7xl bg-white/95 backdrop-blur-2xl shadow-2xl shadow-indigo-500/10 border-gray-200 rounded-[2.5rem] py-2 px-4"
+          : "top-6 w-[90%] max-w-7xl bg-white/60 backdrop-blur-md shadow-sm border-white/40 rounded-[2.5rem] py-4 px-6"
       }`}
     >
       <Container fluid className="px-3">
