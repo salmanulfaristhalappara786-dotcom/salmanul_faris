@@ -198,6 +198,7 @@ const UserDashboard = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full p-8 lg:p-12 overflow-y-auto">
         {isEditing ? (
             <FrameEditor
+                key={editCampaignData?._id || 'new'}
                 editId={editCampaignData?._id}
                 initialData={editCampaignData ? {
                     title: editCampaignData.title,
