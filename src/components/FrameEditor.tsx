@@ -1,14 +1,14 @@
 import * as React from "react";
-import { useState, useRef, useEffect } from "react";
-import { 
-  Plus, Image as ImageIcon, X, Save, Square, Circle as CircleIcon, Trash2,
-  AlignLeft, AlignCenter, AlignRight, Type as TypeIcon
-} from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Rnd } from "react-rnd";
 import { Button } from "@/components/ui/button";
+import { 
+  Plus, Square, Circle as CircleIcon, Type as TypeIcon, Save, X, 
+  Trash2, Image as ImageIcon, AlignCenter, AlignLeft, AlignRight,
+  User, CheckCircle, Smartphone, Layout
+} from "lucide-react";
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { useAuth } from "@/context/AuthContext";
-import { Rnd } from "react-rnd";
 
 export interface Placeholder {
   id: string;
@@ -17,70 +17,48 @@ export interface Placeholder {
   y: number;
   width: number;
   height: number;
-  label?: string;
-  previewText?: string;
-  fontSize?: number;
-  fontFamily?: string;
-  color?: string;
-  lineHeight?: number;
-  fontWeight?: string;
-  fontStyle?: string;
-  textDecoration?: string;
-  textAlign?: 'left' | 'center' | 'right';
   borderRadius?: number;
+  label?: string;
+  fontSize?: number;
+  color?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  fontFamily?: string;
+  fontWeight?: string;
+  x_pct?: number;
+  y_pct?: number;
+  w_pct?: number;
+  h_pct?: number;
 }
 
-const initialFonts = [
-  { name: "Arial", value: "Arial" },
-  { name: "Manjari (മലയാളം)", value: "'Manjari', sans-serif" },
-  { name: "Noto Sans (മലയാളം)", value: "'Noto Sans Malayalam', sans-serif" },
-];
-
 interface FrameEditorProps {
-    editId?: string | null;
-    initialData?: {
-        title: string;
-        frame_url: string;
-        placeholders: Placeholder[];
-    } | null;
-    onSaveSuccess: () => void;
-    onCancel: () => void;
+  editId?: string;
+  initialData?: {
+    title: string;
+    frame_url: string;
+    placeholders: Placeholder[];
+  } | null;
+  onSaveSuccess: () => void;
+  onCancel: () => void;
 }
 
 export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: FrameEditorProps) => {
-  const { user } = useAuth();
-  const [frameUrl, setFrameUrl] = useState(initialData?.frame_url || "");
-  const [editorWidth, setEditorWidth] = useState(500);
-  const [editorHeight, setEditorHeight] = useState(500);
+  const [frameUrl, setFrameUrl] = useState<string>(initialData?.frame_url || "");
   const [placeholders, setPlaceholders] = useState<Placeholder[]>(initialData?.placeholders || []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [campaignTitle, setCampaignTitle] = useState(initialData?.title || "New Campaign");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editorDimensions, setEditorDimensions] = useState({ width: 500, height: 500 });
   const [newCampaignData, setNewCampaignData] = useState({ title: initialData?.title || "", description: "Share your voice.", slug: initialData?.title?.toLowerCase().replace(/ /g, "-") || "" });
-  
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // When frame URL changes, calculate its aspect ratio to set editor dimensions
-  useEffect(() => {
-    if (frameUrl) {
-        const img = new Image();
-        img.src = frameUrl;
-        img.onload = () => {
-            const ratio = img.height / img.width;
-            const targetWidth = 500;
-            const targetHeight = targetWidth * ratio;
-            setEditorWidth(targetWidth);
-            setEditorHeight(targetHeight);
-        };
-    }
-  }, [frameUrl]);
+  const editorWidth = 500;
 
   useEffect(() => {
-    if (initialData) {
-      setFrameUrl(initialData.frame_url);
-      setPlaceholders(initialData.placeholders || []);
-      setCampaignTitle(initialData.title);
-      setNewCampaignData({ title: initialData.title, description: "Share your voice.", slug: initialData.title.toLowerCase().replace(/ /g, "-") });
+    if (initialData?.frame_url) {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.height / img.width;
+        setEditorDimensions({ width: 500, height: 500 * ratio });
+      };
+      img.src = initialData.frame_url;
     }
   }, [initialData]);
 
@@ -88,56 +66,60 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => setFrameUrl(reader.result as string);
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const ratio = img.height / img.width;
+          setEditorDimensions({ width: 500, height: 500 * ratio });
+          setFrameUrl(reader.result as string);
+        };
+        img.src = reader.result as string;
+      };
       reader.readAsDataURL(file);
     }
   };
 
   const addPlaceholder = (type: 'rectangle' | 'circle' | 'text') => {
-    const newPlaceholder: Placeholder = {
-      id: Math.random().toString(36).slice(2, 11),
-      type, x: 50, y: 50,
-      width: type === 'text' ? 180 : 150,
-      height: type === 'text' ? 50 : 150,
-      label: type === 'text' ? "Enter Name" : undefined,
-      previewText: type === 'text' ? "Your Name" : undefined,
-      fontSize: type === 'text' ? 24 : undefined,
-      fontFamily: type === 'text' ? "'Manjari', sans-serif" : 'Arial',
-      color: '#000000',
-      lineHeight: 1.2,
-      textAlign: 'center',
-      fontWeight: 'bold',
-      fontStyle: 'normal',
-      textDecoration: 'none',
-      borderRadius: type === 'rectangle' ? 20 : 0
+    const id = Math.random().toString(36).substr(2, 9);
+    const newP: Placeholder = {
+      id, type, x: 50, y: 50, width: type === 'text' ? 200 : 150, height: type === 'text' ? 40 : 150,
+      label: type === 'text' ? 'Enter Name' : 'Photo',
+      fontSize: 24, color: '#000000', textAlign: 'center', borderRadius: 0
     };
-    setPlaceholders([...placeholders, newPlaceholder]);
-    setSelectedId(newPlaceholder.id);
+    setPlaceholders([...placeholders, newP]);
+    setSelectedId(id);
   };
 
   const updatePlaceholder = (id: string, updates: Partial<Placeholder>) => {
-    setPlaceholders(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    setPlaceholders(placeholders.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
-  const finalizeSave = async () => {
-    const loadingToastId = toast.loading("Saving campaign...");
+  const handleSave = async () => {
+    if (!newCampaignData.title) {
+        toast.error("Please provide a frame title");
+        return;
+    }
+
+    const loadingToastId = toast.loading(editId ? "Updating frame..." : "Publishing frame...");
     try {
-      if (!frameUrl) throw new Error("No frame image found.");
-      
       let publicUrl = frameUrl;
       if (frameUrl.startsWith('data:')) {
-          const blob = await (await fetch(frameUrl)).blob();
-          publicUrl = await uploadToCloudinary(blob, (p) => toast.loading(`Uploading... ${p}%`, { id: loadingToastId }));
+          const res = await fetch(frameUrl);
+          const blob = await res.blob();
+          publicUrl = await uploadToCloudinary(blob) || "";
       }
-      
-      if (!publicUrl) throw new Error("Upload failed.");
 
-      const saveRes = await fetch(editId ? `/api/campaigns?id=${editId}` : '/api/campaigns', {
-        method: editId ? 'PUT' : 'POST',
+      const method = editId ? 'PUT' : 'POST';
+      const url = editId ? `/api/campaigns?id=${editId}` : '/api/campaigns';
+      
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+
+      const saveRes = await fetch(url, {
+        method,
         headers: { 
             'Content-Type': 'application/json',
-            'x-requester-id': user!.id,
-            'x-requester-role': user!.role || 'user'
+            'x-requester-id': user?.id || ''
         },
         body: JSON.stringify({
             title: newCampaignData.title,
@@ -146,10 +128,10 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
             frame_url: publicUrl,
             placeholders: placeholders.map(p => ({
                 ...p,
-                x_pct: p.x / editorWidth,
-                y_pct: p.y / editorHeight,
-                w_pct: p.width / editorWidth,
-                h_pct: p.height / editorHeight
+                x_pct: p.x / editorDimensions.width,
+                y_pct: p.y / editorDimensions.height,
+                w_pct: p.width / editorDimensions.width,
+                h_pct: p.height / editorDimensions.height
             })),
             status: 'active',
             owner_id: user?.id
@@ -176,7 +158,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
           <Button onClick={onCancel} variant="outline" className="rounded-xl border-gray-200 font-bold"><X size={18} /> Exit</Button>
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Frame Studio</h2>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl px-8 font-black flex items-center gap-2"><Save size={18} /> Save Frame</Button>
+        <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl px-8 font-black flex items-center gap-2"><Save size={18} /> Save Frame</Button>
       </header>
 
       <div className="p-8 grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -188,7 +170,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                     <input type="file" className="hidden" onChange={handleFrameUpload} accept="image/*" />
                 </label>
              ) : (
-                <div id="editor-container" className="relative bg-white shadow-2xl overflow-hidden rounded-[2rem] border border-gray-100 mx-auto" style={{ width: `${editorWidth}px`, height: `${editorHeight}px` }}>
+                <div id="editor-container" className="relative bg-white shadow-2xl overflow-hidden rounded-[2rem] border border-gray-100 mx-auto" style={{ width: `${editorDimensions.width}px`, height: `${editorDimensions.height}px` }}>
                     <img src={frameUrl} className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0" alt="Frame" />
                     {placeholders.map((p) => (
                         <Rnd
@@ -213,13 +195,13 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
         <div className="xl:col-span-4 space-y-6">
             <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frame Settings</label>
-                <input type="text" value={campaignTitle} onChange={e => { setCampaignTitle(e.target.value); setNewCampaignData(prev => ({...prev, title: e.target.value, slug: e.target.value.toLowerCase().replace(/ /g, "-")})); }} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-100" placeholder="Frame Name" />
+                <input type="text" value={newCampaignData.title} onChange={e => setNewCampaignData(prev => ({...prev, title: e.target.value, slug: e.target.value.toLowerCase().replace(/ /g, "-")}))} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-100" placeholder="Frame Name" />
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
-                <Button onClick={() => addPlaceholder('rectangle')} variant="outline" className="rounded-xl h-12 gap-2 border-gray-200"><Square size={16} className="text-green-500" /> Photo</Button>
-                <Button onClick={() => addPlaceholder('circle')} variant="outline" className="rounded-xl h-12 gap-2 border-gray-200"><CircleIcon size={16} className="text-emerald-500" /> Circle</Button>
-                <Button onClick={() => addPlaceholder('text')} variant="outline" className="col-span-2 rounded-xl h-12 gap-2 border-gray-200"><TypeIcon size={16} className="text-blue-500" /> Name Field</Button>
+                <Button onClick={() => addPlaceholder('rectangle')} variant="outline" className="rounded-xl h-12 gap-2 border-gray-200 text-xs font-black"><Square size={16} className="text-indigo-600" /> Photo</Button>
+                <Button onClick={() => addPlaceholder('circle')} variant="outline" className="rounded-xl h-12 gap-2 border-gray-200 text-xs font-black"><CircleIcon size={16} className="text-indigo-600" /> Circle</Button>
+                <Button onClick={() => addPlaceholder('text')} variant="outline" className="col-span-2 rounded-xl h-12 gap-2 border-gray-200 text-xs font-black"><TypeIcon size={16} className="text-indigo-600" /> Name Field</Button>
             </div>
 
             {selectedPlaceholder && (
@@ -238,33 +220,15 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                     ) : (
                         <div className="space-y-4">
                             <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Dimensions: {Math.round(selectedPlaceholder.width)}x{Math.round(selectedPlaceholder.height)}</p>
-                            {selectedPlaceholder.type === 'rectangle' && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase">Roundness</label>
-                                    <input type="range" min={0} max={100} value={selectedPlaceholder.borderRadius || 0} onChange={e => updatePlaceholder(selectedId!, {borderRadius: parseInt(e.target.value)})} className="w-full accent-indigo-600" />
-                                </div>
-                            )}
+                            <div className="space-y-1"><label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Hole Shape</label><div className="flex gap-2"><Button size="sm" variant={selectedPlaceholder.type === 'rectangle' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedId!, {type: 'rectangle'})} className="flex-1 rounded-xl">Square</Button><Button size="sm" variant={selectedPlaceholder.type === 'circle' ? 'default' : 'outline'} onClick={() => updatePlaceholder(selectedId!, {type: 'circle'})} className="flex-1 rounded-xl">Circle</Button></div></div>
+                            {selectedPlaceholder.type === 'rectangle' && <div className="space-y-1"><label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Corner Rounding</label><input type="range" min="0" max="100" value={selectedPlaceholder.borderRadius} onChange={e => updatePlaceholder(selectedId!, {borderRadius: parseInt(e.target.value)})} className="w-full accent-indigo-600" /></div>}
                         </div>
                     )}
-                    <Button onClick={() => { setPlaceholders(placeholders.filter(ph => ph.id !== selectedId)); setSelectedId(null); }} variant="ghost" className="w-full text-red-500 hover:bg-red-50 font-black rounded-xl gap-2"><Trash2 size={16} /> Delete Element</Button>
+                    <Button variant="ghost" className="w-full text-red-500 hover:bg-red-50 font-black text-xs gap-2" onClick={() => { setPlaceholders(placeholders.filter(p => p.id !== selectedId)); setSelectedId(null); }}><Trash2 size={14} /> Delete Hole</Button>
                 </div>
             )}
         </div>
       </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative border border-white/20">
-                <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 text-gray-400 hover:text-gray-900"><X size={20} /></button>
-                <h3 className="text-2xl font-black text-gray-900 mb-2">Publish Campaign</h3>
-                <p className="text-gray-400 font-medium text-sm mb-8">This will make your frame live for everyone.</p>
-                <div className="space-y-6">
-                    <div className="space-y-1"><label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Title</label><input type="text" value={newCampaignData.title} onChange={e => setNewCampaignData({...newCampaignData, title: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-6 py-4 font-black text-gray-900 outline-none" /></div>
-                    <Button onClick={finalizeSave} className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-2xl shadow-2xl shadow-indigo-100">GO LIVE NOW</Button>
-                </div>
-            </div>
-        </div>
-      )}
     </div>
   );
 };
