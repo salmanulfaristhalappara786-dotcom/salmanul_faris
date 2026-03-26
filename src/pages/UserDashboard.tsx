@@ -8,7 +8,7 @@ import {
   User as UserIcon, Mail, Phone, UserCheck, Clock, ShieldCheck,
   LayoutDashboard, Plus, Image as ImageIcon, LogOut,
   CheckCircle, XCircle, Trash2, Edit3, Palette, Layout,
-  MoreVertical
+  Share2
 } from "lucide-react";
 import { FrameEditor, Placeholder } from "@/components/FrameEditor";
 
@@ -29,6 +29,42 @@ interface Campaign {
   owner_id: string;
   placeholders: Placeholder[];
 }
+
+interface CampaignCardProps {
+  c: Campaign;
+  user: any;
+  isManagement: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onShare: () => void;
+}
+
+const CampaignCard = ({ c, user, isManagement, onEdit, onDelete, onShare }: CampaignCardProps) => {
+    return (
+        <div className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all h-full relative">
+            <div className="aspect-square bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100 relative">
+                <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            </div>
+            <div className="flex-1 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
+                    <Button onClick={(e) => { e.stopPropagation(); onShare(); }} variant="ghost" className="w-10 h-10 rounded-xl text-indigo-500 hover:bg-indigo-50 p-0">
+                        <Share2 size={18} />
+                    </Button>
+                </div>
+                <div className="flex gap-2">
+                    <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
+                    {isManagement && (
+                        <>
+                            <Button onClick={onEdit} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600 transition-colors"><Edit3 size={18} /></Button>
+                            <Button onClick={onDelete} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-red-500 transition-colors"><Trash2 size={18} /></Button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -105,6 +141,12 @@ const UserDashboard = () => {
     }
   };
 
+  const handleShare = (id: string, slug?: string) => {
+    const url = `${window.location.origin}/participate/${slug || id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Live Link copied!");
+  };
+
   const myCampaigns = allCampaigns.filter(c => c.owner_id === user?.id);
   const myFramesCount = myCampaigns.length;
 
@@ -113,6 +155,14 @@ const UserDashboard = () => {
         {label}
     </button>
   );
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFEFF] flex">
@@ -211,7 +261,7 @@ const UserDashboard = () => {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {myCampaigns.slice(0, 3).map(c => (
-                                <CampaignCard key={c._id} c={c} user={user} isManagement={true} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} onDelete={() => handleDelete(c._id)} />
+                                <CampaignCard key={c._id} c={c} user={user} isManagement={true} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} onDelete={() => handleDelete(c._id)} onShare={() => handleShare(c._id, c.slug)} />
                             ))}
                         </div>
                         {myCampaigns.length > 3 && (
@@ -226,7 +276,7 @@ const UserDashboard = () => {
                     <h3 className="text-2xl font-black text-gray-900 mb-8 border-b border-gray-50 pb-4">All Platform Frames</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {allCampaigns.map(c => (
-                            <CampaignCard key={c._id} c={c} user={user} isManagement={false} onEdit={() => {}} onDelete={() => {}} />
+                            <CampaignCard key={c._id} c={c} user={user} isManagement={false} onEdit={() => {}} onDelete={() => {}} onShare={() => handleShare(c._id, c.slug)} />
                         ))}
                     </div>
                  </div>
@@ -243,7 +293,7 @@ const UserDashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {myCampaigns.map(c => (
-                                <CampaignCard key={c._id} c={c} user={user} isManagement={true} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} onDelete={() => handleDelete(c._id)} />
+                                <CampaignCard key={c._id} c={c} user={user} isManagement={true} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} onDelete={() => handleDelete(c._id)} onShare={() => handleShare(c._id, c.slug)} />
                             ))}
                         </div>
                     )}
@@ -254,28 +304,6 @@ const UserDashboard = () => {
       </main>
     </div>
   );
-};
-
-const CampaignCard = ({ c, user, isManagement, onEdit, onDelete }: { c: Campaign, user: any, isManagement: boolean, onEdit: () => void, onDelete: () => void }) => {
-    return (
-        <div className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all h-full relative">
-            <div className="aspect-square bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100 relative">
-                <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-            </div>
-            <div className="flex-1 space-y-4">
-                <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
-                <div className="flex gap-2">
-                    <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
-                    {isManagement && (
-                        <>
-                            <Button onClick={onEdit} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600 transition-colors"><Edit3 size={18} /></Button>
-                            <Button onClick={onDelete} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-red-500 transition-colors"><Trash2 size={18} /></Button>
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
 };
 
 export default UserDashboard;

@@ -74,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               return res.status(403).json({ success: false, error: "Not authorized to delete this campaign" });
           }
 
-          await Campaign.findByIdAndRemove(id);
+          await Campaign.findByIdAndDelete(id);
           return res.status(200).json({ success: true });
         } catch (error) {
           console.error("DELETE Error:", error);
