@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { useAuth } from "@/context/AuthContext";
 
 export interface Placeholder {
   id: string;
@@ -46,6 +47,7 @@ interface FrameEditorProps {
 }
 
 export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: FrameEditorProps) => {
+  const { user } = useAuth();
   const [frameUrl, setFrameUrl] = useState<string>(initialData?.frame_url || "");
   const [placeholders, setPlaceholders] = useState<Placeholder[]>(initialData?.placeholders || []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -117,8 +119,6 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
       const method = editId ? 'PUT' : 'POST';
       const url = editId ? `/api/campaigns?id=${editId}` : '/api/campaigns';
       
-      const userStr = localStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : null;
 
       const saveRes = await fetch(url, {
         method,
@@ -258,6 +258,21 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
         </h3>
 
         <div className="space-y-8">
+            {/* Global Settings */}
+            <div className="space-y-4">
+                <label className="text-[11px] font-black text-indigo-600 uppercase tracking-widest ml-1">General Info</label>
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 ml-1 uppercase tracking-tight">Frame Title</label>
+                    <input 
+                      type="text" 
+                      value={newCampaignData.title} 
+                      onChange={e => setNewCampaignData(p => ({ ...p, title: e.target.value, slug: e.target.value.toLowerCase().replace(/ /g, "-") }))} 
+                      className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 font-black text-sm text-gray-900 outline-none focus:ring-4 focus:ring-indigo-100 transition-all placeholder:text-gray-300" 
+                      placeholder="My New Campaign"
+                    />
+                </div>
+            </div>
+
             {/* Elements Section */}
             <div className="space-y-4">
                 <label className="text-[11px] font-black text-indigo-600 uppercase tracking-widest ml-1">Elements</label>
