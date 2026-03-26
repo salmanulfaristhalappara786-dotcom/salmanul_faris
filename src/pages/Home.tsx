@@ -16,11 +16,12 @@ const Home = () => {
         try {
             const res = await fetch('/api/settings');
             const data = await res.json();
-            if (data && data.hero_images && data.hero_images.length > 0) {
+            if (data && data.hero_images && Array.isArray(data.hero_images) && data.hero_images.length > 0) {
                 setPhotos(data.hero_images);
             }
         } catch (err) {
-            console.error("Hero fetch failed", err);
+            console.error("Hero fetch failed, using fallback images", err);
+            // setPhotos is already initialized with defaults
         }
     };
     fetchSettings();

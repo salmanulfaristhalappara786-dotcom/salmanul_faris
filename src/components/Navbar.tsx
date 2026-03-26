@@ -35,16 +35,16 @@ export const NavbarComponent = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto items-center gap-1">
+          <Nav className="ms-auto align-items-center">
             {navLinks.map((link: any) => (
               <Nav.Link
                 key={link.to}
                 as={Link}
                 to={link.to}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`mx-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   location.pathname === link.to
                     ? "text-indigo-700 bg-indigo-50"
-                    : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
+                    : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50 mb-2 mb-lg-0"
                 }`}
               >
                 {link.label}
@@ -52,12 +52,12 @@ export const NavbarComponent = () => {
             ))}
             
             {user && (
-                <div className="flex items-center gap-3 ms-lg-4 ps-lg-4 border-lg-l border-gray-100 mt-3 mt-lg-0 w-full w-lg-auto justify-content-between p-2 p-lg-0 bg-gray-50 bg-lg-transparent rounded-lg">
-                    <div className="flex items-center gap-2">
+                <div className="d-flex align-items-center gap-3 ms-lg-4 ps-lg-4 border-lg-start border-gray-100 mt-3 mt-lg-0 w-100 w-lg-auto justify-content-between p-2 p-lg-0 bg-gray-50 bg-lg-transparent rounded-lg">
+                    <div className="d-flex align-items-center gap-2">
                       <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border border-gray-200" />
                       <span className="text-xs font-semibold text-gray-700 d-lg-none">{user.name}</span>
                     </div>
-                    <button onClick={logout} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                    <button onClick={logout} className="p-2 text-gray-400 hover:text-red-500 transition-colors border-0 bg-transparent">
                         <LogOut size={18} />
                     </button>
                 </div>
