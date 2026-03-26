@@ -293,7 +293,7 @@ const UserDashboard = () => {
                     <div>
                         <h3 className="text-xl font-black text-gray-900 mb-8 px-4 flex items-center gap-3">
                             <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
-                            All My Frames ({userCampaigns.filter(c => c.owner_id === user?.id).length})
+                            All My Frames ({allCampaigns.filter(c => c.owner_id === user?.id).length})
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {myCampaigns.slice(0, 3).map(c => (
