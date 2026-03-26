@@ -62,7 +62,10 @@ const UserDashboard = () => {
           if (profile.status === 'approved') {
             const cRes = await fetch(`/api/campaigns`);
             const campaigns = await cRes.json();
-            setUserCampaigns(Array.isArray(campaigns) ? campaigns : []);
+            if (Array.isArray(campaigns)) {
+                // ONLY SHOW USER'S OWN FRAMES IN MY STUDIO
+                setUserCampaigns(campaigns.filter((c: any) => c.owner_id === userId));
+            }
           }
       }
     } catch (err) {
@@ -285,33 +288,32 @@ const UserDashboard = () => {
 
              {/* 3. YOUR PUBLISHED FRAMES */}
              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-8 px-2 flex items-center gap-3"><div className="w-2 h-8 bg-indigo-600 rounded-full"></div> All My Frames</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {userCampaigns.map(c => {
-                      const isOwner = c.owner_id === user?.id;
-                      const isAdmin = user?.role === 'admin';
-                      return (
-                        <div key={c._id} className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all">
-                            <div className="aspect-square bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 relative">
-                                <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                {isOwner && <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-3 py-1.5 rounded-full uppercase">Your Card</div>}
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
-                                <div className="flex gap-2">
-                                    <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
-                                    {(isOwner || isAdmin) && (
-                                        <>
-                                            <Button onClick={() => { setEditCampaignData(c); setIsEditing(true); }} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600"><Edit3 size={18} /></Button>
-                                            <Button onClick={() => handleDelete(c._id)} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-red-600"><Trash2 size={18} /></Button>
-                                        </>
-                                    )}
+                <h3 className="text-xl font-black text-gray-900 mb-8 px-2 flex items-center gap-3"><div className="w-2 h-8 bg-indigo-600 rounded-full"></div> All My Frames ({userCampaigns.length})</h3>
+                {userCampaigns.length === 0 ? (
+                    <div className="bg-indigo-50/50 border-2 border-dashed border-indigo-100 rounded-[3rem] p-20 text-center">
+                        <ImageIcon className="w-16 h-16 text-indigo-200 mx-auto mb-4" />
+                        <p className="text-indigo-400 font-bold">You haven't created any frames yet.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {userCampaigns.map(c => (
+                            <div key={c._id} className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all">
+                                <div className="aspect-square bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 relative">
+                                    <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-3 py-1.5 rounded-full uppercase">Your Card</div>
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                    <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
+                                    <div className="flex gap-2">
+                                        <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
+                                        <Button onClick={() => { setEditCampaignData(c); setIsEditing(true); }} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600"><Edit3 size={18} /></Button>
+                                        <Button onClick={() => handleDelete(c._id)} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-red-600"><Trash2 size={18} /></Button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                      );
-                    })}
-                </div>
+                        ))}
+                    </div>
+                )}
              </div>
           </div>
         )}
