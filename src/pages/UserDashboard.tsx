@@ -73,6 +73,7 @@ const UserDashboard = () => {
   const [profileRequest, setProfileRequest] = useState<ProfileRequest | null>(null);
   
   const [allCampaigns, setAllCampaigns] = useState<Campaign[]>([]);
+  const [myCampaigns, setMyCampaigns] = useState<Campaign[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'all' | 'my'>('overview');
 
   const [formData, setFormData] = useState({
@@ -99,10 +100,17 @@ const UserDashboard = () => {
           });
           
           if (profile.status === 'approved') {
-            const cRes = await fetch(`/api/campaigns`);
+            const [cRes, mRes] = await Promise.all([
+                fetch('/api/campaigns?status=active'),
+                fetch(`/api/campaigns?owner_id=${userId}`)
+            ]);
             const campaigns = await cRes.json();
+            const userCampaigns = await mRes.json();
             if (Array.isArray(campaigns)) {
                 setAllCampaigns(campaigns);
+            }
+            if (Array.isArray(userCampaigns)) {
+                setMyCampaigns(userCampaigns);
             }
           }
       }
@@ -165,6 +173,7 @@ const UserDashboard = () => {
       if (data.success) {
         toast.success("Frame deleted!");
         setAllCampaigns(prev => prev.filter(c => c._id !== id));
+        setMyCampaigns(prev => prev.filter(c => c._id !== id));
       } else throw new Error(data.error);
     } catch (error: any) {
       toast.error(error.message || "Failed to delete.");
@@ -177,7 +186,6 @@ const UserDashboard = () => {
     toast.success("Live Link copied!");
   };
 
-  const myCampaigns = allCampaigns.filter(c => c.owner_id === user?.id);
   const myFramesCount = myCampaigns.length;
 
   const SidebarBtn = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (

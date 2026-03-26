@@ -144,7 +144,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                 w_pct: p.width / editorDimensions.width,
                 h_pct: p.height / editorDimensions.height
             })),
-            status: 'active',
+            status: user?.role === 'admin' ? 'active' : 'pending',
             owner_id: user?.id
         })
       });

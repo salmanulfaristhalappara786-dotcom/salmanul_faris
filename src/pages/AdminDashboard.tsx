@@ -204,6 +204,54 @@ const AdminDashboard = () => {
                 <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-indigo-100/20 border border-gray-50 group hover:scale-[1.02] transition-transform"><h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Campaigns</h4><div className="flex items-center gap-6"><div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><ImageIcon size={30} /></div><span className="text-6xl font-black text-gray-900">{stats.campaigns}</span></div></div>
                 <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-purple-100/20 border border-gray-50 group hover:scale-[1.02] transition-transform"><h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Submissions</h4><div className="flex items-center gap-6"><div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600"><Plus size={30} className="rotate-45" /></div><span className="text-6xl font-black text-gray-900">{stats.submissions}</span></div></div>
              </div>
+          ) : activeTab === "approval" ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {pendingCampaigns.map((camp: any) => (
+                    <div key={camp._id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden group">
+                        <div className="aspect-square relative overflow-hidden">
+                            <img src={camp.frame_url} alt={camp.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-amber-600 shadow-sm border border-amber-100">{camp.status}</div>
+                        </div>
+                        <div className="p-8">
+                            <h4 className="text-xl font-black text-gray-900 mb-2 truncate">{camp.title}</h4>
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest leading-none mb-6">User Frame</p>
+                            <div className="flex gap-2">
+                                <Button 
+                                    onClick={async () => {
+                                        await fetch(`/api/campaigns?id=${camp._id}`, {
+                                            method: 'PATCH',
+                                            headers: {'Content-Type': 'application/json', 'x-requester-id': user!.id, 'x-requester-role': 'admin'},
+                                            body: JSON.stringify({status: 'active'})
+                                        });
+                                        toast.success("Campaign Approved and Published!");
+                                        fetchData();
+                                    }}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 h-12 rounded-xl text-[10px] font-black uppercase text-white"
+                                >
+                                    Approve
+                                </Button>
+                                <Button 
+                                    onClick={async () => {
+                                        if(confirm("Reject and delete this campaign?")) {
+                                            await fetch(`/api/campaigns?id=${camp._id}`, {
+                                                method: 'DELETE',
+                                                headers: {'x-requester-id': user!.id, 'x-requester-role': 'admin'}
+                                            });
+                                            toast.success("Campaign Deleted");
+                                            fetchData();
+                                        }
+                                    }}
+                                    variant="outline" 
+                                    className="h-12 w-12 rounded-xl text-red-500 border-gray-50 flex items-center justify-center p-0"
+                                >
+                                    <Trash2 size={18} />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                {pendingCampaigns.length === 0 && <div className="col-span-full py-20 text-center text-gray-400 font-bold uppercase tracking-widest bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">No pending campaigns</div>}
+             </div>
           ) : activeTab === "gallery" ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {allCampaigns.map((camp: any) => (

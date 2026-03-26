@@ -35,16 +35,16 @@ export const NavbarComponent = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto align-items-center">
+          <Nav className="ms-auto align-items-lg-center mt-3 mt-lg-0">
             {navLinks.map((link: any) => (
               <Nav.Link
                 key={link.to}
                 as={Link}
                 to={link.to}
-                className={`mx-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`mx-lg-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mb-2 mb-lg-0 ${
                   location.pathname === link.to
                     ? "text-indigo-700 bg-indigo-50"
-                    : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50 mb-2 mb-lg-0"
+                    : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
                 }`}
               >
                 {link.label}

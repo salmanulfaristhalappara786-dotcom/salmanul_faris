@@ -61,10 +61,9 @@ const Login = () => {
           </p>
           
           <div className="py-6 flex flex-col items-center gap-4">
-               <GoogleLogin
+              <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => toast.error("Google Login Failed")}
-                useOneTap
                 theme="filled_blue"
                 shape="pill"
                 size="large"

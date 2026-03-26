@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { useAuth } from "@/context/AuthContext";
 
 const Participate = () => {
+  const { user, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState<any>(null);
@@ -205,8 +207,23 @@ const Participate = () => {
     toast.success("Downloaded!");
   };
 
-  if (loading) return <div className="min-h-screen bg-[#60A5FA] flex items-center justify-center"><Loader2 className="w-12 h-12 text-white animate-spin" /></div>;
+  if (loading || authLoading) return <div className="min-h-screen bg-[#60A5FA] flex items-center justify-center"><Loader2 className="w-12 h-12 text-white animate-spin" /></div>;
   if (!campaign) return <div className="min-h-screen bg-[#60A5FA] flex items-center justify-center text-white font-bold text-2xl">Campaign Not Found</div>;
+
+  if (campaign.status === 'pending' || campaign.status === 'rejected') {
+      if (user?.role !== 'admin' && user?.id !== campaign.owner_id) {
+          return (
+              <div className="min-h-screen bg-[#60A5FA] flex flex-col items-center justify-center text-white p-6 text-center space-y-4">
+                  <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mb-4">
+                      <X className="w-10 h-10" />
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tight uppercase">Pending Review</h2>
+                  <p className="font-bold text-white/80 max-w-sm">This frame is currently waiting for admin approval before it can be used.</p>
+                  <Button onClick={() => navigate("/")} className="mt-8 bg-white text-blue-600 hover:bg-gray-50 h-14 px-8 rounded-2xl font-black">Go Home</Button>
+              </div>
+          );
+      }
+  }
 
   return (
     <div className="min-h-screen bg-[#60A5FA] pb-12 pt-16">

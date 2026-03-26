@@ -10,6 +10,13 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      '/api': {
+        target: 'https://salmanulfaris.vercel.app',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
   },
   plugins: [react()],
   resolve: {
