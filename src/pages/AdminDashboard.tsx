@@ -137,37 +137,45 @@ const AdminDashboard = () => {
   
   return (
     <div className="flex h-screen bg-[#FDFEFF]">
-      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white border-r border-gray-50 flex flex-col shadow-2xl lg:shadow-none transition-transform duration-300 z-50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white border-r border-gray-50 flex flex-col shadow-2xl lg:shadow-none transition-transform duration-300 z-[100] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="p-10">
-          <div className="flex items-center gap-4 mb-12">
-            <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain shadow-xl" />
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">Admin</h2>
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-4">
+              <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain shadow-xl" />
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">Admin</h2>
+            </div>
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400"><X size={24} /></button>
           </div>
           <nav className="space-y-1">
             {user?.role === 'admin' && !window.location.pathname.startsWith("/studio") && (
               <>
-                <button onClick={() => setActiveTab("dash")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
-                <button onClick={() => setActiveTab("approval")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>
-                <button onClick={() => setActiveTab("users")} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>
-                <button onClick={() => setActiveTab("settings")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "settings" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Palette size={20} /> Manage Site</button>
+                <button onClick={() => { setActiveTab("dash"); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
+                <button onClick={() => { setActiveTab("approval"); setSidebarOpen(false); }} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "approval" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><ShieldCheck size={20} /> Approvals</div> {pendingCampaigns.length > 0 && <span className="bg-red-500 text-white text-[8px] px-2 py-1 rounded-full">{pendingCampaigns.length}</span>}</button>
+                <button onClick={() => { setActiveTab("users"); setSidebarOpen(false); }} className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><div className="flex items-center gap-4"><UserCheck size={20} /> User Requests</div> {userRequests.filter(r => r.status === 'pending').length > 0 && <span className="bg-amber-500 text-white text-[8px] px-2 py-1 rounded-full">{userRequests.filter(r => r.status === 'pending').length}</span>}</button>
+                <button onClick={() => { setActiveTab("settings"); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "settings" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Palette size={20} /> Manage Site</button>
               </>
             )}
-            <button onClick={() => setActiveTab("create")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "create" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><ImageIcon size={20} /> Create Frame</button>
-            <button onClick={() => setActiveTab("gallery")} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "gallery" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Plus size={20} className="rotate-45" /> All Frames</button>
+            <button onClick={() => { setActiveTab("create"); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "create" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><ImageIcon size={20} /> Create Frame</button>
+            <button onClick={() => { setActiveTab("gallery"); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "gallery" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><Plus size={20} className="rotate-45" /> All Frames</button>
           </nav>
         </div>
         <div className="mt-auto p-10 border-t border-gray-50"><button onClick={() => { logout(); navigate("/"); }} className="w-full flex items-center justify-center gap-3 px-6 py-5 rounded-2xl text-sm font-black text-red-500 hover:bg-red-50 transition-all"><LogOut size={20} /> Logout</button></div>
       </aside>
 
+      {sidebarOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] lg:hidden" onClick={() => setSidebarOpen(false)}></div>}
+
       <main className="flex-1 overflow-y-auto bg-[#FDFEFF]">
-        <header className="bg-white/80 backdrop-blur-xl sticky top-0 px-12 py-8 flex items-center justify-between z-10 border-b border-gray-50">
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">{activeTab === "create" ? "Frame Studio" : activeTab === "gallery" ? "All Content Library" : "Admin Insights"}</h2>
+        <header className="bg-white/80 backdrop-blur-xl sticky top-0 px-6 md:px-12 py-6 md:py-8 flex items-center justify-between z-10 border-b border-gray-50">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400"><Menu size={24} /></button>
+            <h2 className="text-xl md:text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">{activeTab === "create" ? "Frame Studio" : activeTab === "gallery" ? "All Content Library" : "Admin Insights"}</h2>
+          </div>
           <div className="flex gap-4">
              {/* Save button is now inside FrameEditor */}
           </div>
         </header>
 
-        <div className="p-12">
+        <div className="p-6 md:p-12">
           {activeTab === "create" ? (
              <FrameEditor 
                 key={editId || 'new'}
@@ -224,11 +232,11 @@ const AdminDashboard = () => {
                             <h3 className="text-2xl font-black text-gray-900">Home Hero Slider</h3>
                             <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-1">Main banner images on landing page</p>
                         </div>
-                        <Button onClick={() => handleSiteUpload('hero')} className="bg-indigo-600 hover:bg-indigo-700 h-14 px-8 rounded-2xl font-black text-xs gap-3 shadow-xl shadow-indigo-100">
+                        <Button onClick={() => handleSiteUpload('hero')} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 h-14 px-8 rounded-2xl font-black text-xs gap-3 shadow-xl shadow-indigo-100">
                              <Plus size={20} /> Add Hero Image
                         </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {siteSettings.hero_images.map((img, i) => (
                             <div key={i} className="aspect-[4/5] bg-gray-50 rounded-3xl overflow-hidden relative group border border-gray-100 shadow-sm">
                                 <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Hero" />
