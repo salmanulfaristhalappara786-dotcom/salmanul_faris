@@ -304,7 +304,7 @@ const UserDashboard = () => {
           </div>
         </div>
         
-        <nav className="space-y-4 px-10 overflow-y-auto flex-1 h-full pb-6">
+        <nav className="space-y-4 px-10 overflow-y-auto flex-1 min-h-0 h-full pb-6">
             <SidebarBtn label="OVER VIEW" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsEditing(false); setSidebarOpen(false); }} />
             <SidebarBtn label="CREATE FRAME" active={false} onClick={() => { setIsEditing(true); setEditCampaignData(null); setSidebarOpen(false); }} />
             <SidebarBtn label="ALL FRAMES" active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setIsEditing(false); setSidebarOpen(false); }} />

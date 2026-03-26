@@ -148,7 +148,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         
-        <nav className="space-y-1 px-10 overflow-y-auto flex-1 pb-6">
+        <nav className="space-y-1 px-10 overflow-y-auto flex-1 min-h-0 pb-6">
           {user?.role === 'admin' && !window.location.pathname.startsWith("/studio") && (
             <>
               <button onClick={() => { setActiveTab("dash"); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === "dash" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"}`}><LayoutDashboard size={20} /> Overview</button>
