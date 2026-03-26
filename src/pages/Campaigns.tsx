@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, ArrowRight, Image as ImageIcon, Sparkles, LayoutDashboard } from "lucide-react";
+import { ChevronRight, ArrowRight, Image as ImageIcon, Sparkles, LayoutDashboard, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +27,14 @@ const Campaigns = () => {
     document.title = "Active Campaigns | Focal Knot";
   }, []);
 
+  const handleShare = (e: React.MouseEvent, id: string, slug?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/participate/${slug || id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Campaign link copied!");
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFEFF]">
       <div className="container mx-auto px-4 md:px-6 py-20">
@@ -40,7 +48,7 @@ const Campaigns = () => {
             </p>
           </div>
           <Link to={user ? "/dashboard" : "/login"}>
-            <Button size="lg" className="h-16 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-100 font-black text-lg gap-3 transition-all hover:scale-105 active:scale-95">
+            <Button size="lg" className="h-16 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-100 font-black text-lg gap-3 transition-transform hover:scale-105 active:scale-95">
               <LayoutDashboard size={20} /> Access Your Studio
             </Button>
           </Link>
@@ -58,12 +66,13 @@ const Campaigns = () => {
               <Link 
                 key={campaign._id} 
                 to={`/participate/${campaign._id}`}
-                className="group relative bg-white rounded-[3rem] overflow-hidden border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+                className="group relative bg-white rounded-[3rem] overflow-hidden border border-gray-100 shadow-xl hover:shadow-2xl transition-[transform,box-shadow] duration-500 hover:-translate-y-2"
               >
                 <div className="aspect-[4/5] bg-gray-50 overflow-hidden relative">
                   <img 
                     src={campaign.frame_url} 
                     alt={campaign.title} 
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
@@ -71,6 +80,14 @@ const Campaigns = () => {
                       <ChevronRight size={32} />
                     </div>
                   </div>
+                  
+                  {/* Share Button Overlay */}
+                  <button 
+                    onClick={(e) => handleShare(e, campaign._id, campaign.slug)}
+                    className="absolute top-6 right-6 w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center text-indigo-600 shadow-xl hover:bg-white hover:scale-110 transition-all z-20"
+                  >
+                    <Share2 size={20} />
+                  </button>
                 </div>
                 
                 <div className="p-10">
@@ -78,14 +95,16 @@ const Campaigns = () => {
                     <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black tracking-widest rounded-full uppercase">Active</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
                   </div>
-                  <h3 className="text-3xl font-black text-gray-900 mb-4 group-hover:text-indigo-600 transition-colors">{campaign.title}</h3>
+                  <h3 className="text-3xl font-black text-gray-900 mb-4 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{campaign.title}</h3>
                   <p className="text-gray-500 font-medium mb-8 line-clamp-2">{campaign.description || "Join this campaign and express yourself with our custom designed frames."}</p>
                   
                   <div className="flex items-center justify-between pt-6 border-t border-gray-50">
                     <span className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                        Join Movement <ArrowRight size={14} className="text-indigo-600" />
                     </span>
-                    <Sparkles size={20} className="text-indigo-100 group-hover:text-indigo-300 transition-colors" />
+                    <div className="flex items-center gap-4">
+                        <Sparkles size={20} className="text-indigo-100 group-hover:text-indigo-300 transition-colors" />
+                    </div>
                   </div>
                 </div>
               </Link>
