@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
   User as UserIcon, Mail, Phone, UserCheck, Clock, ShieldCheck,
   LayoutDashboard, Plus, Image as ImageIcon, LogOut,
-  CheckCircle, XCircle, Trash2, Edit3, Palette
+  CheckCircle, XCircle, Trash2, Edit3, Palette, Layout
 } from "lucide-react";
 import { FrameEditor, Placeholder } from "@/components/FrameEditor";
 
@@ -34,7 +34,9 @@ const UserDashboard = () => {
   const { user, logout, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [profileRequest, setProfileRequest] = useState<ProfileRequest | null>(null);
-  const [userCampaigns, setUserCampaigns] = useState<Campaign[]>([]);
+  
+  const [allCampaigns, setAllCampaigns] = useState<Campaign[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'all' | 'my'>('overview');
 
   const [formData, setFormData] = useState({
     username: "",
@@ -63,8 +65,7 @@ const UserDashboard = () => {
             const cRes = await fetch(`/api/campaigns`);
             const campaigns = await cRes.json();
             if (Array.isArray(campaigns)) {
-                // ONLY SHOW USER'S OWN FRAMES IN MY STUDIO
-                setUserCampaigns(campaigns.filter((c: any) => c.owner_id === userId));
+                setAllCampaigns(campaigns);
             }
           }
       }
@@ -115,25 +116,6 @@ const UserDashboard = () => {
       });
     } catch (error: any) {
       toast.error(error.message || "Failed to submit request.");
-    }
-  };
-
-  const handleDelete = async (campaignId: string) => {
-    if(!confirm("Are you sure you want to delete this frame?")) return;
-    try {
-        const res = await fetch(`/api/campaigns?id=${campaignId}`, {
-            method: 'DELETE',
-            headers: {
-                'x-requester-id': user!.id,
-                'x-requester-role': user!.role || 'user'
-            }
-        });
-        if (res.ok) {
-            toast.success("Frame deleted successfully");
-            fetchProfileAndData(user!.id);
-        }
-    } catch (err) {
-        toast.error("Failed to delete.");
     }
   };
 
@@ -205,30 +187,43 @@ const UserDashboard = () => {
     );
   }
 
-  const myFramesCount = userCampaigns.filter(c => c.owner_id === user?.id).length;
+  const myCampaigns = allCampaigns.filter(c => c.owner_id === user?.id);
+  const myFramesCount = myCampaigns.length;
+
+  const SidebarBtn = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
+    <button onClick={onClick} className={`w-full h-14 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg flex items-center justify-center border-2 ${active ? 'bg-[#7BB0E8] text-gray-900 border-[#7BB0E8]' : 'bg-white text-gray-400 border-gray-50 hover:border-indigo-200'}`}>
+        {label}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-[#FDFEFF] flex">
-      <aside className="w-80 bg-white border-r border-gray-50 flex flex-col p-10">
+      {/* Sidebar based on Mockup */}
+      <aside className="w-80 bg-white border-r border-gray-50 flex flex-col p-10 pt-16">
         <div className="mb-12">
           <div className="flex items-center gap-4 mb-4">
-            <img src={user?.picture} alt="Profile" className="w-12 h-12 rounded-2xl border-2 border-indigo-100 shadow-sm" />
+            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100">
+               {profileRequest.username[0].toUpperCase()}
+            </div>
             <div>
-              <h3 className="font-black text-gray-900 leading-tight truncate">@{profileRequest.username}</h3>
+              <h3 className="font-black text-gray-900 leading-tight">@{profileRequest.username}</h3>
               <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
                 <ShieldCheck size={10} /> Verified Creator
               </p>
             </div>
           </div>
         </div>
-        <nav className="space-y-1">
-          <button className="w-full flex items-center gap-4 px-6 py-5 bg-indigo-50 text-indigo-700 rounded-3xl text-sm font-black transition-all">
-            <LayoutDashboard size={20} /> My Studio
-          </button>
+        
+        <nav className="space-y-4">
+            <SidebarBtn label="OVER VIEW" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsEditing(false); }} />
+            <SidebarBtn label="CREATE FRAME" active={false} onClick={() => { setIsEditing(true); setEditCampaignData(null); }} />
+            <SidebarBtn label="ALL FRAMES" active={activeTab === 'all'} onClick={() => { setActiveTab('all'); setIsEditing(false); }} />
+            <SidebarBtn label="MY FRAMES" active={activeTab === 'my'} onClick={() => { setActiveTab('my'); setIsEditing(false); }} />
         </nav>
+
         <div className="mt-auto pt-10 border-t border-gray-50">
           <Button onClick={() => { logout(); navigate("/"); }} variant="ghost" className="w-full h-16 rounded-2xl text-red-500 hover:bg-red-50 font-black gap-2 transition-all">
-            <LogOut size={20} /> Logout Studio
+            <LogOut size={20} /> Logout
           </Button>
         </div>
       </aside>
@@ -246,6 +241,7 @@ const UserDashboard = () => {
                     setIsEditing(false);
                     setEditCampaignData(null);
                     fetchProfileAndData(user!.id);
+                    setActiveTab('my');
                 }}
                 onCancel={() => {
                     setIsEditing(false);
@@ -254,70 +250,117 @@ const UserDashboard = () => {
             />
         ) : (
           <div className="space-y-12">
-             {/* 1. OVERVIEW STATS */}
-             <header className="flex flex-col gap-8">
-                <div>
-                   <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
-                   <p className="text-gray-400 font-bold mt-1">Managed by you.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50 group hover:-translate-y-1 transition-all">
-                        <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6">
-                           <ImageIcon size={26} />
-                        </div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Active Frames</p>
-                        <h4 className="text-4xl font-black text-gray-900">{myFramesCount}</h4>
-                    </div>
-                    <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 rounded-[2.5rem] shadow-xl text-white flex flex-col justify-center">
-                        <h4 className="font-black text-xl">Design Mastery</h4>
-                        <p className="text-white/70 text-xs font-medium">Control every pixel of your audience experience.</p>
-                    </div>
-                </div>
+             <header className="flex flex-col gap-2">
+                <h2 className="text-4xl font-black text-gray-900 tracking-tight">Studio Dashboard</h2>
+                <p className="text-gray-400 font-bold">Managed by you.</p>
              </header>
 
-             {/* 2. ADD FRAME BUTTON */}
-             <div className="flex items-center justify-between bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-50">
-                <div>
-                   <h3 className="text-2xl font-black text-gray-900">Start New Project</h3>
-                   <p className="text-gray-400 text-sm font-bold">Create a fresh card design.</p>
-                </div>
-                <Button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-20 px-12 rounded-3xl text-xl font-black shadow-2xl flex items-center gap-4 transition-all hover:scale-[1.05]">
-                    <Plus size={28} /> Create New Card
-                </Button>
-             </div>
-
-             {/* 3. YOUR PUBLISHED FRAMES */}
-             <div>
-                <h3 className="text-xl font-black text-gray-900 mb-8 px-2 flex items-center gap-3"><div className="w-2 h-8 bg-indigo-600 rounded-full"></div> All My Frames ({userCampaigns.length})</h3>
-                {userCampaigns.length === 0 ? (
-                    <div className="bg-indigo-50/50 border-2 border-dashed border-indigo-100 rounded-[3rem] p-20 text-center">
-                        <ImageIcon className="w-16 h-16 text-indigo-200 mx-auto mb-4" />
-                        <p className="text-indigo-400 font-bold">You haven't created any frames yet.</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {userCampaigns.map(c => (
-                            <div key={c._id} className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all">
-                                <div className="aspect-square bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 relative">
-                                    <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-3 py-1.5 rounded-full uppercase">Your Card</div>
-                                </div>
-                                <div className="flex-1 space-y-4">
-                                    <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
-                                    <div className="flex gap-2">
-                                        <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="w-full bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
-                                    </div>
-                                </div>
+             {activeTab === 'overview' && (
+                 <>
+                    {/* Header Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-50 flex items-center gap-8 group hover:-translate-y-1 transition-all">
+                            <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600 shadow-xl shadow-indigo-50">
+                                <ImageIcon size={32} />
                             </div>
+                            <div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Active Frames</p>
+                                <h4 className="text-5xl font-black text-gray-900">{myFramesCount}</h4>
+                            </div>
+                        </div>
+                        <div className="bg-[#5C55F2] p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-center relative overflow-hidden">
+                            <div className="relative z-10">
+                                <h4 className="font-black text-2xl mb-2">Design Mastery</h4>
+                                <p className="text-white/70 text-xs font-medium max-w-[200px]">Control every pixel of your audience experience.</p>
+                            </div>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                        </div>
+                    </div>
+
+                    {/* Create New Card (Mockup Style) */}
+                    <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl border border-gray-50 flex items-center justify-between group overflow-hidden relative">
+                        <div>
+                            <h3 className="text-3xl font-black text-gray-800">Start New Project</h3>
+                            <p className="text-gray-400 font-bold mt-1">Create a fresh card design.</p>
+                        </div>
+                        <button onClick={() => { setIsEditing(true); setEditCampaignData(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-24 px-12 rounded-[2rem] text-white flex items-center gap-4 transition-all hover:scale-[1.05] shadow-2xl shadow-indigo-200">
+                             <Plus size={32} />
+                             <span className="text-xl font-black">Create New Card</span>
+                        </button>
+                    </div>
+
+                    {/* Recently Created (My Frames Preview) */}
+                    <div>
+                        <h3 className="text-xl font-black text-gray-900 mb-8 px-4 flex items-center gap-3">
+                            <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
+                            All My Frames ({userCampaigns.filter(c => c.owner_id === user?.id).length})
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {myCampaigns.slice(0, 3).map(c => (
+                                <CampaignCard key={c._id} c={c} user={user} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} />
+                            ))}
+                        </div>
+                        {myCampaigns.length > 3 && (
+                            <Button onClick={() => setActiveTab('my')} variant="ghost" className="mt-8 text-indigo-600 font-black">View All My Frames →</Button>
+                        )}
+                    </div>
+                 </>
+             )}
+
+             {activeTab === 'all' && (
+                 <div>
+                    <h3 className="text-2xl font-black text-gray-900 mb-8 border-b border-gray-50 pb-4">All Platform Frames</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {allCampaigns.map(c => (
+                            <CampaignCard key={c._id} c={c} user={user} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} />
                         ))}
                     </div>
-                )}
-             </div>
+                 </div>
+             )}
+
+             {activeTab === 'my' && (
+                 <div>
+                    <h3 className="text-2xl font-black text-gray-900 mb-8 border-b border-gray-50 pb-4">My Collection ({myCampaigns.length})</h3>
+                    {myCampaigns.length === 0 ? (
+                        <div className="py-20 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
+                             <ImageIcon size={40} className="mx-auto text-gray-300 mb-4" />
+                             <p className="text-gray-400 font-black">No frames created yet.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {myCampaigns.map(c => (
+                                <CampaignCard key={c._id} c={c} user={user} onEdit={() => { setEditCampaignData(c); setIsEditing(true); }} />
+                            ))}
+                        </div>
+                    )}
+                 </div>
+             )}
           </div>
         )}
       </main>
     </div>
   );
+};
+
+const CampaignCard = ({ c, user, onEdit }: { c: Campaign, user: any, onEdit: (c: Campaign) => void }) => {
+    const isOwner = c.owner_id === user?.id;
+    return (
+        <div className="bg-white p-6 rounded-[3rem] border border-gray-50 shadow-xl flex flex-col gap-6 group hover:shadow-2xl transition-all h-full">
+            <div className="aspect-square bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100 relative">
+                <img src={c.frame_url} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                {isOwner && <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-3 py-1.5 rounded-full uppercase shadow-lg">Your Design</div>}
+            </div>
+            <div className="flex-1 space-y-4">
+                <h4 className="text-xl font-black text-gray-900 truncate pr-2">{c.title}</h4>
+                <div className="flex gap-2">
+                    <Button onClick={() => window.open(`/participate/${c.slug || c._id}`, '_blank')} className="flex-1 bg-indigo-600 h-12 rounded-2xl text-xs font-black shadow-lg">View Live</Button>
+                    {isOwner && (
+                        <Button onClick={() => onEdit(c)} variant="outline" className="w-12 h-12 rounded-2xl text-gray-400 border-gray-100 flex items-center justify-center p-0 hover:text-indigo-600 transition-colors"><Edit3 size={18} /></Button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default UserDashboard;
