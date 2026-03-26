@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Plus, Square, Circle as CircleIcon, Type as TypeIcon, Save, X, 
   Trash2, Image as ImageIcon, AlignCenter, AlignLeft, AlignRight,
-  Bold, Italic, Underline, Upload, Eraser, ChevronDown
+  Bold, Italic, Underline, Upload, Eraser, ChevronDown, Layout
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinary";
