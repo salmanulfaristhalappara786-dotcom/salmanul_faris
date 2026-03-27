@@ -174,7 +174,18 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
 
   const loadFont = useCallback(async (name: string, url: string) => {
     try {
-      if (document.fonts.check(`1em ${name}`)) return;
+      // Create a style element to define the font-face globally for better CSS reliability
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @font-face {
+          font-family: '${name}';
+          src: url('${url}');
+          font-display: swap;
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Also use FontFace API for canvas/scripting support
       const font = new FontFace(name, `url(${url})`);
       await font.load();
       document.fonts.add(font);
@@ -371,7 +382,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                         <option value="Gayathri" style={{ fontFamily: "'Gayathri', sans-serif" }}>സൽമാനുൽ ഫാരിസ് (Gayathri)</option>
                                         <option value="Baloo Chettan 2" style={{ fontFamily: "'Baloo Chettan 2', cursive" }}>സൽമാനുൽ ഫാരിസ് (Baloo)</option>
                                         {customFonts.map(f => (
-                                            <option key={f.url} value={f.name} style={{ fontFamily: f.name }}>സൽമാനുൽ ഫാരിസ് ({f.name})</option>
+                                            <option key={f.url} value={f.name} style={{ fontFamily: `'${f.name}', sans-serif` }}>സൽമാനുൽ ഫാരിസ് ({f.name})</option>
                                         ))}
                                     </select>
                                 </div>
@@ -467,12 +478,13 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
 
                 {/* System Fonts List */}
                 {customFonts.length > 0 && (
-                    <div className="space-y-3 mt-4">
+                    <div className="space-y-4 mt-6">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">System Fonts ({customFonts.length})</label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 gap-3">
                             {customFonts.map(f => (
-                                <div key={f.url} className="px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-600 border border-gray-100 flex items-center gap-2">
-                                    <span style={{ fontFamily: f.name }}>{f.name}</span>
+                                <div key={f.url} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center gap-2 group transition-all hover:bg-white hover:shadow-xl hover:shadow-indigo-100/50">
+                                    <span className="text-xl leading-none" style={{ fontFamily: `'${f.name}', sans-serif` }}>സൽമാൻ</span>
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-tight truncate w-full text-center">{f.name}</span>
                                 </div>
                             ))}
                         </div>
