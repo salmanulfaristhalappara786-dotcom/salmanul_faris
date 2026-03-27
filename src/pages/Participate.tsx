@@ -25,7 +25,22 @@ const Participate = () => {
 
   const loadFont = useCallback(async (name: string, url: string) => {
     try {
-      if (document.fonts.check(`1em ${name}`)) return;
+      // 1. Create @font-face CSS declaration (required for canvas rendering)
+      const existingStyle = document.querySelector(`style[data-font="${name}"]`);
+      if (!existingStyle) {
+        const style = document.createElement('style');
+        style.setAttribute('data-font', name);
+        style.innerHTML = `
+          @font-face {
+            font-family: '${name}';
+            src: url('${url}');
+            font-display: swap;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // 2. Also load via FontFace API for canvas/scripting support
       const font = new FontFace(name, `url(${url})`);
       await font.load();
       document.fonts.add(font);
@@ -148,7 +163,28 @@ const Participate = () => {
         // Draw Frame Overlay
         ctx.drawImage(frameImg, 0, 0, frameImg.width, frameImg.height);
 
-        // Wait for all fonts to be loaded before drawing text
+        // Ensure all fonts used by text placeholders are loaded before drawing
+        const textPlaceholders = placeholders.filter(p => p.type === 'text');
+        const fontsToLoad: Set<string> = new Set();
+        for (const p of textPlaceholders) {
+            if (p.fontFamily && p.fontFamily !== 'Arial') {
+                fontsToLoad.add(p.fontFamily);
+            }
+        }
+        // Re-fetch custom fonts and ensure they're loaded for canvas
+        try {
+            const fontRes = await fetch('/api/fonts');
+            const fontData = await fontRes.json();
+            if (Array.isArray(fontData)) {
+                for (const cf of fontData) {
+                    if (fontsToLoad.has(cf.name)) {
+                        await loadFont(cf.name, cf.url);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Font re-load failed:", e);
+        }
         await document.fonts.ready;
 
         // Draw Names (Text)
@@ -165,8 +201,11 @@ const Participate = () => {
                 const fontSize = Math.round((p.fontSize || 24) * sx);
                 const textAlign = p.textAlign || 'center';
                 const fontFamily = p.fontFamily || 'Arial';
+                const fontWeight = p.fontWeight || 'normal';
+                const fontStyle = p.italic ? 'italic' : 'normal';
 
-                ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                // Apply dynamic weight and style, with quotes for custom fonts
+                ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px '${fontFamily}', sans-serif`;
                 ctx.fillStyle = p.color || "#000000";
                 ctx.textAlign = textAlign as CanvasTextAlign;
                 ctx.textBaseline = 'middle';
