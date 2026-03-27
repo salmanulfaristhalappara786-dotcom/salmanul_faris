@@ -2,5 +2,10 @@
   "rewrites": [
     { "source": "/participate/:slug", "destination": "/api/og?slug=:slug" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/og.ts": {
+      "includeFiles": "dist/**"
+    }
+  }
 }

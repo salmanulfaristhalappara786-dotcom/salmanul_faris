@@ -11,10 +11,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ua = req.headers['user-agent'] || '';
   const isBot = /bot|crawl|slurp|spider|whatsapp|telegram|facebookexternalhit|twitterbot|linkedinbot|discordbot|slackbot|preview|curl/i.test(ua);
 
+  // Dynamically detect the domain from the request
+  const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'focl-knot.vercel.app';
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  // Real user — serve the SPA index.html directly (bundled via includeFiles)
+  if (!isBot) {
+    try {
+      const indexPath = path.join(process.cwd(), 'dist', 'index.html');
+      const html = fs.readFileSync(indexPath, 'utf-8');
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      return res.status(200).send(html);
+    } catch (e) {
+      console.error('Failed to read dist/index.html:', e);
+      // Fallback: show a loading page that refreshes
+      return res.status(200).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Loading...</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:system-ui;background:#60A5FA;color:white;text-align:center;}</style></head><body><div><h2>⏳ Loading...</h2><p>Please wait...</p></div></body></html>`);
+    }
+  }
+
+  // Bot — fetch OG data and return meta tags
   let title = 'Salmanul Faris — Creative Studio';
   let description = 'Participate and create your own personalized poster!';
-  let image = 'https://salmanulfaris.vercel.app/logo.png';
-  const pageUrl = `https://salmanulfaris.vercel.app/participate/${slug}`;
+  let image = `${baseUrl}/logo.png`;
+  const pageUrl = `${baseUrl}/participate/${slug}`;
 
   try {
     await dbConnect();
@@ -28,9 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('OG fetch error:', e);
   }
 
-  if (isBot) {
-    // Bot — return a minimal OG HTML page (no redirect, bots ignore it)
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -55,20 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <a href="${pageUrl}">Click here to participate</a>
 </body>
 </html>`;
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
-    return res.status(200).send(html);
-  }
-
-  // Real user — serve the React SPA index.html
-  try {
-    const indexPath = path.join(process.cwd(), 'dist', 'index.html');
-    const html = fs.readFileSync(indexPath, 'utf-8');
-    res.setHeader('Content-Type', 'text/html');
-    return res.status(200).send(html);
-  } catch {
-    // Fallback if dist not found (dev mode)
-    res.setHeader('Location', pageUrl);
-    return res.status(302).end();
-  }
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
+  return res.status(200).send(html);
 }

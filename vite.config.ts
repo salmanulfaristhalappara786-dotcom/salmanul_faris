@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       '/api': {
-        target: 'https://salmanulfaris.vercel.app',
+        target: 'https://focl-knot.vercel.app',
         changeOrigin: true,
         secure: true,
       }
