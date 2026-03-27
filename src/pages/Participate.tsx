@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { useAuth } from "@/context/AuthContext";
+import { unicodeToMltt } from "@/lib/fontConverter";
 
 const Participate = () => {
   const { user, loading: authLoading } = useAuth();
@@ -39,7 +40,9 @@ const Participate = () => {
         const res = await fetch('/api/fonts');
         const data = await res.json();
         if (Array.isArray(data)) {
-          data.forEach(f => loadFont(f.name, f.url));
+          const fontPromises = data.map(f => loadFont(f.name, f.url));
+          await Promise.all(fontPromises);
+          await document.fonts.ready;
         }
       } catch (err) {
         console.error("Failed to fetch fonts", err);
@@ -172,7 +175,8 @@ const Participate = () => {
                 if (textAlign === 'left') targetX = scaledX;
                 if (textAlign === 'right') targetX = scaledX + scaledWidth;
 
-                ctx.fillText(value, targetX, scaledY + scaledHeight / 2);
+                const finalValue = p.isLegacyMalayalam ? unicodeToMltt(value) : value;
+                ctx.fillText(finalValue, targetX, scaledY + scaledHeight / 2);
             }
         }
 

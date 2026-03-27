@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { useAuth } from "@/context/AuthContext";
+import { unicodeToMltt } from "@/lib/fontConverter";
 
 export interface Placeholder {
   id: string;
@@ -33,6 +34,7 @@ export interface Placeholder {
   y_pct?: number;
   w_pct?: number;
   h_pct?: number;
+  isLegacyMalayalam?: boolean;
 }
 
 interface FrameEditorProps {
@@ -209,7 +211,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
         const url = await uploadToCloudinary(file);
         if (!url) continue;
 
-        const fontName = file.name.split('.')[0].replace(/[^a-zA-Z]/g, '');
+        const fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
         
         // Save to DB
         const res = await fetch('/api/fonts', {
@@ -285,7 +287,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                 fontFamily: p.fontFamily || 'Arial',
                                 lineHeight: p.lineHeight || 1.4,
                              }}>
-                                {p.previewText || p.label}
+                                {p.isLegacyMalayalam ? unicodeToMltt(p.previewText || p.label || 'സൽമാനുൽ') : (p.previewText || p.label)}
                             </div>
                         ) : (
                             <div className="text-[10px] font-black text-indigo-400/50 uppercase select-none">{p.type === 'circle' ? 'Circle' : 'Photo'}</div>
@@ -360,16 +362,16 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                         onChange={e => updatePlaceholder(selectedId!, {fontFamily: e.target.value})}
                                         className="w-full bg-gray-50 rounded-xl px-4 py-3 font-bold text-sm appearance-none outline-none focus:ring-4 focus:ring-indigo-100 border-none transition-all cursor-pointer"
                                     >
-                                        <option value="Arial" style={{ fontFamily: 'Arial' }}>Arial</option>
-                                        <option value="Inter" style={{ fontFamily: 'Inter' }}>Inter</option>
-                                        <option value="Poppins" style={{ fontFamily: 'Poppins' }}>Poppins</option>
-                                        <option value="Noto Sans Malayalam" style={{ fontFamily: "'Noto Sans Malayalam', sans-serif" }}>Noto Sans Malayalam</option>
-                                        <option value="Manjari" style={{ fontFamily: "'Manjari', sans-serif" }}>Manjari</option>
-                                        <option value="Chilanka" style={{ fontFamily: "'Chilanka', cursive" }}>Chilanka</option>
-                                        <option value="Gayathri" style={{ fontFamily: "'Gayathri', sans-serif" }}>Gayathri</option>
-                                        <option value="Baloo Chettan 2" style={{ fontFamily: "'Baloo Chettan 2', cursive" }}>Baloo Chettan 2</option>
+                                        <option value="Arial" style={{ fontFamily: 'Arial' }}>Arial (A)</option>
+                                        <option value="Inter" style={{ fontFamily: 'Inter' }}>Inter (A)</option>
+                                        <option value="Poppins" style={{ fontFamily: 'Poppins' }}>Poppins (A)</option>
+                                        <option value="Noto Sans Malayalam" style={{ fontFamily: "'Noto Sans Malayalam', sans-serif" }}>സൽമാനുൽ ഫാരിസ് (Noto)</option>
+                                        <option value="Manjari" style={{ fontFamily: "'Manjari', sans-serif" }}>സൽമാനുൽ ഫാരിസ് (Manjari)</option>
+                                        <option value="Chilanka" style={{ fontFamily: "'Chilanka', cursive" }}>സൽമാനുൽ ഫാരിസ് (Chilanka)</option>
+                                        <option value="Gayathri" style={{ fontFamily: "'Gayathri', sans-serif" }}>സൽമാനുൽ ഫാരിസ് (Gayathri)</option>
+                                        <option value="Baloo Chettan 2" style={{ fontFamily: "'Baloo Chettan 2', cursive" }}>സൽമാനുൽ ഫാരിസ് (Baloo)</option>
                                         {customFonts.map(f => (
-                                            <option key={f.url} value={f.name} style={{ fontFamily: f.name }}>{f.name}</option>
+                                            <option key={f.url} value={f.name} style={{ fontFamily: f.name }}>സൽമാനുൽ ഫാരിസ് ({f.name})</option>
                                         ))}
                                     </select>
                                 </div>
@@ -394,6 +396,20 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                 <button onClick={() => updatePlaceholder(selectedId!, { textAlign: 'center' })} className={`flex-1 h-12 rounded-xl flex items-center justify-center transition-all ${selectedPlaceholder.textAlign === 'center' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400'}`}> <AlignCenter size={18} /> </button>
                                 <button onClick={() => updatePlaceholder(selectedId!, { textAlign: 'right' })} className={`flex-1 h-12 rounded-xl flex items-center justify-center transition-all ${selectedPlaceholder.textAlign === 'right' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400'}`}> <AlignRight size={18} /> </button>
                             </div>
+
+                            {/* Legacy Font Support */}
+                            <label className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100 cursor-pointer group hover:bg-amber-100 transition-all mt-2">
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedPlaceholder.isLegacyMalayalam} 
+                                    onChange={e => updatePlaceholder(selectedId!, {isLegacyMalayalam: e.target.checked})}
+                                    className="w-5 h-5 accent-amber-600 rounded-lg"
+                                />
+                                <div className="space-y-0.5">
+                                    <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest block">Legacy Malayalam Font</span>
+                                    <p className="text-[8px] font-bold text-amber-600 leading-tight">Enable if using fonts like ML-TT or FML</p>
+                                </div>
+                            </label>
                         </>
                     )}
 
