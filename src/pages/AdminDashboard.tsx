@@ -14,11 +14,7 @@ import { FrameEditor, Placeholder } from "@/components/FrameEditor";
 
 // Removed redundant Placeholder interface as it is now imported from FrameEditor
 
-const initialFonts = [
-  { name: "Arial", value: "Arial" },
-  { name: "Manjari (മലയാളം)", value: "'Manjari', sans-serif" },
-  { name: "Noto Sans (മലയാളം)", value: "'Noto Sans Malayalam', sans-serif" },
-];
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

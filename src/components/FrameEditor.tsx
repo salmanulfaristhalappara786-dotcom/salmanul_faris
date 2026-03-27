@@ -91,7 +91,7 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
       label: type === 'text' ? 'Full Name' : 'Photo Placeholder',
       previewText: type === 'text' ? 'John Doe' : '',
       fontSize: 18, color: '#000000', textAlign: 'center', borderRadius: 0,
-      lineHeight: 1.4, fontWeight: 'normal'
+      lineHeight: 1.4, fontWeight: 'normal', fontFamily: 'Arial'
     };
     setPlaceholders([...placeholders, newP]);
     setSelectedId(id);
@@ -360,12 +360,16 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                                         onChange={e => updatePlaceholder(selectedId!, {fontFamily: e.target.value})}
                                         className="w-full bg-gray-50 rounded-xl px-4 py-3 font-bold text-sm appearance-none outline-none focus:ring-4 focus:ring-indigo-100 border-none transition-all cursor-pointer"
                                     >
-                                        <option value="Arial">Arial</option>
-                                        <option value="Inter">Inter</option>
-                                        <option value="Poppins">Poppins</option>
-                                        <option value="Malayalam">Malayalam</option>
+                                        <option value="Arial" style={{ fontFamily: 'Arial' }}>Arial</option>
+                                        <option value="Inter" style={{ fontFamily: 'Inter' }}>Inter</option>
+                                        <option value="Poppins" style={{ fontFamily: 'Poppins' }}>Poppins</option>
+                                        <option value="Noto Sans Malayalam" style={{ fontFamily: "'Noto Sans Malayalam', sans-serif" }}>Noto Sans Malayalam</option>
+                                        <option value="Manjari" style={{ fontFamily: "'Manjari', sans-serif" }}>Manjari</option>
+                                        <option value="Chilanka" style={{ fontFamily: "'Chilanka', cursive" }}>Chilanka</option>
+                                        <option value="Gayathri" style={{ fontFamily: "'Gayathri', sans-serif" }}>Gayathri</option>
+                                        <option value="Baloo Chettan 2" style={{ fontFamily: "'Baloo Chettan 2', cursive" }}>Baloo Chettan 2</option>
                                         {customFonts.map(f => (
-                                            <option key={f.url} value={f.name}>{f.name}</option>
+                                            <option key={f.url} value={f.name} style={{ fontFamily: f.name }}>{f.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -444,6 +448,20 @@ export const FrameEditor = ({ editId, initialData, onSaveSuccess, onCancel }: Fr
                 <Button onClick={() => fontInputRef.current?.click()} variant="outline" className="w-full h-14 rounded-2xl border-2 border-gray-100 text-gray-500 font-bold flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
                     <Upload size={20} /> Add Font
                 </Button>
+
+                {/* System Fonts List */}
+                {customFonts.length > 0 && (
+                    <div className="space-y-3 mt-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">System Fonts ({customFonts.length})</label>
+                        <div className="flex flex-wrap gap-2">
+                            {customFonts.map(f => (
+                                <div key={f.url} className="px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-600 border border-gray-100 flex items-center gap-2">
+                                    <span style={{ fontFamily: f.name }}>{f.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="h-px bg-gray-100 w-full mb-8"></div>
 

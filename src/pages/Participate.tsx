@@ -145,6 +145,9 @@ const Participate = () => {
         // Draw Frame Overlay
         ctx.drawImage(frameImg, 0, 0, frameImg.width, frameImg.height);
 
+        // Wait for all fonts to be loaded before drawing text
+        await document.fonts.ready;
+
         // Draw Names (Text)
         for (const p of placeholders) {
             if (p.type === 'text') {
