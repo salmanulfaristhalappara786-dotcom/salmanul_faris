@@ -1,11 +1,16 @@
 {
   "rewrites": [
-    { "source": "/participate/:slug", "destination": "/api/og?slug=:slug" },
+    {
+      "source": "/participate/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|whatsapp|telegram|facebook|twitter|linkedin|discord|slack|preview|crawl|spider).*"
+        }
+      ],
+      "destination": "/api/og?slug=:slug"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "functions": {
-    "api/og.ts": {
-      "includeFiles": "dist/**"
-    }
-  }
+  ]
 }

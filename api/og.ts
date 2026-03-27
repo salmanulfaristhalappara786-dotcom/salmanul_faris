@@ -2,36 +2,36 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import dbConnect from './lib/mongoose.js';
 import { Campaign } from './lib/models.js';
-import fs from 'fs';
-import path from 'path';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { slug } = req.query;
 
   const ua = req.headers['user-agent'] || '';
-  const isBot = /bot|crawl|slurp|spider|whatsapp|telegram|facebookexternalhit|twitterbot|linkedinbot|discordbot|slackbot|preview|curl/i.test(ua);
+  const isBot = /bot|whatsapp|telegram|facebook|twitter|linkedin|discord|slack|preview|crawl|spider/i.test(ua);
 
   // Dynamically detect the domain from the request
   const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'focl-knot.vercel.app';
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const baseUrl = `${protocol}://${host}`;
 
-  // Real user — serve the SPA index.html directly (bundled via includeFiles)
+  // IF A REAL USER HITS THIS FUNCTION (fallback if Vercel `has` regex misses them)
+  // Simply fetch the actual index.html from our own domain and serve it inline.
   if (!isBot) {
     try {
-      const indexPath = path.join(process.cwd(), 'dist', 'index.html');
-      const html = fs.readFileSync(indexPath, 'utf-8');
+      // Fetch the static index.html from the root path
+      const htmlReq = await fetch(`${baseUrl}/`);
+      const htmlText = await htmlReq.text();
       res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-      return res.status(200).send(html);
+      return res.status(200).send(htmlText);
     } catch (e) {
-      console.error('Failed to read dist/index.html:', e);
-      // Fallback: show a loading page that refreshes
-      return res.status(200).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Loading...</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:system-ui;background:#60A5FA;color:white;text-align:center;}</style></head><body><div><h2>⏳ Loading...</h2><p>Please wait...</p></div></body></html>`);
+      console.error('Fallback fetch error:', e);
+      // Absolute last resort redirect
+      res.setHeader('Location', `${baseUrl}/?redirect=/participate/${slug}`);
+      return res.status(302).end();
     }
   }
 
-  // Bot — fetch OG data and return meta tags
+  // ONLY FOR BOTS — fetch campaign data and return OG meta tags
   let title = 'Salmanul Faris — Creative Studio';
   let description = 'Participate and create your own personalized poster!';
   let image = `${baseUrl}/logo.png`;
